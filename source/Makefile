@@ -1,39 +1,64 @@
-# C compiler
 HOST_CC = g++
-HOST_CC_FLAGS = -g -O2
+HOST_CC_FLAGS = -g -O3
 
-GEM5_CC = aarch64-linux-g++
-GEM5_CC_FLAGS = -g -O2 -static 
+CUDA_CC = nvcc
+CUDA_CC_FLAGS = -g -O3 -lm
 
-DATA_DIR = $(HOME)/apps/hotspot/data
-GEM5_DIR = $(HOME)/gem5
+DATA_DIR = ../data
 
-compile_all: hotspot_gem5 hotspot_host
+RM=rm -f
+
+KERNEL = kernel
+
+OBJDIR = build
+SOBJ_host = hotspot_host.o
+SOBJ_cuda = hotspot_cuda.o
+
+OBJ_host := $(patsubst %.o,$(OBJDIR)/%.o,$(SOBJ_host))
+OBJ_cuda := $(patsubst %.o,$(OBJDIR)/%.o,$(SOBJ_cuda))
+
+
+compile_all: hotspot_host hotspot_cuda
 
 compile_host: hotspot_host
 
-compile_gem5: hotspot_gem5
+compile_cuda: hotspot_cuda
+
+
+link_objs_host = $(HOST_CC) $(HOST_CC_FLAGS) -o $@ $(OBJ_host) $(OBJDIR)/$(KERNEL)_$@.o $(LIBS)
+link_objs_cuda = $(CUDA_CC) $(CUDA_CC_FLAGS) -o $@ $(OBJ_cuda) $(OBJDIR)/$(KERNEL)_$@.o $(LIBS)
 
 run_host: hotspot_host
 	@echo "======================================================================"
-	@echo "WARNING: Running with 1000 iterations... "
-	@echo "you may change the number of iterations and the problem size"
+	@echo "Host code"
+	@echo "problem size (1024) with 1000 iterations... "
 	@echo "======================================================================"
-	./hotspot_host 1024 1024 1000 1 $(DATA_DIR)/temp_1024 $(DATA_DIR)/power_1024 output_host.out
-
-run_gem5: hotspot_gem5
+	./hotspot_host 1024 1024 1 1000 $(DATA_DIR)/temp_1024 $(DATA_DIR)/power_1024 output_host.out
+	
+run_cuda: hotspot_cuda
 	@echo "======================================================================"
-	@echo "WARNING: Running the smallest problem size (64) with 2 iterations... "
-	@echo "you should change the number of iterations and the problem size"
-	@echo "for the final results"
+	@echo "Cuda code"
+	@echo "problem size (1024) with 1000 iterations... "
 	@echo "======================================================================"
-	$(GEM5_DIR)/build/ARM/gem5.opt $(GEM5_DIR)/configs/example/se.py --cpu-type=ex5_LITTLE --caches --svevl=1 -c hotspot_gem5 -o '64 64 2 1 $(DATA_DIR)/temp_64 $(DATA_DIR)/power_64 output_gem5.out'
+	./hotspot_cuda 1024 1024 1 1000 $(DATA_DIR)/temp_1024 $(DATA_DIR)/power_1024 output_host.out
 
-hotspot_host: hotspot.cpp Makefile 
-	$(HOST_CC) $(HOST_CC_FLAGS) hotspot.cpp -o hotspot_host
+hotspot_host: $(OBJ_host)
+	$(link_objs_host)
 
-hotspot_gem5: hotspot.cpp Makefile 
-	$(GEM5_CC) $(GEM5_CC_FLAGS) hotspot.cpp -o hotspot_gem5 
+hotspot_cuda: $(OBJ_cuda) $(KERNEL).cu
+	$(CUDA_CC) $(CUDA_CC_FLAGS) -o $(OBJDIR)/$(KERNEL)_$@.o -c $(KERNEL).cu 
+	$(link_objs_cuda)
 
-clean:
-	rm -f hotspot_host hotspot_gem5 output_*.out
+$(OBJDIR)/$(SOBJ_host) : hotspot.cpp
+	$(HOST_CC) $(HOST_CC_FLAGS) -c $< -o $@ -DHOST
+	
+$(OBJDIR)/$(SOBJ_cuda) : hotspot.cpp
+	$(CUDA_CC) $(CUDA_CC_FLAGS) -c $< -o $@
+
+clean :
+
+	$(RM) hotspot_host
+	$(RM) hotspot_cuda
+	$(RM) -r build/
+
+$(shell mkdir -p $(OBJDIR))
