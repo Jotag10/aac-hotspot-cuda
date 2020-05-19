@@ -15,16 +15,15 @@ compile_cuda: hotspot_cuda
 
 run_host: hotspot_host
 	@echo "======================================================================"
-	@echo "WARNING: Running with 1000 iterations... "
+	@echo "WARNING: Running with 1000 iterations on host... "
 	@echo "you may change the number of iterations and the problem size"
 	@echo "======================================================================"
 	./hotspot_host 1024 1024 1000 1 $(DATA_DIR)/temp_1024 $(DATA_DIR)/power_1024 output_host.out
 
 run_cuda: hotspot_cuda
 	@echo "======================================================================"
-	@echo "WARNING: Running the smallest problem size (64) with 2 iterations... "
-	@echo "you should change the number of iterations and the problem size"
-	@echo "for the final results"
+	@echo "WARNING: Running with 1000 iterations on cuda... "
+	@echo "you may change the number of iterations and the problem size"
 	@echo "======================================================================"
 	./hotspot_cuda 1024 1024 1000 1 $(DATA_DIR)/temp_1024 $(DATA_DIR)/power_1024 output_cuda.out
 
