@@ -144,7 +144,7 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
         fprintf(stderr, "Failed to launch vectorAdd kernel (error code %s)!\n", cudaGetErrorString(err));                
         exit(EXIT_FAILURE);
     }
-    printf("result-dev[17597] - %lf\n", result_dev[17597]);
+    //printf("result-dev[17597] - %lf\n", result_dev[17597]);
     err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
     printf("result[17597] - %lf\n", result[17597]);
 
@@ -270,7 +270,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
                 #ifdef VERBOSE
                 fprintf(stdout, "iteration %d\n", i++);
                 #endif
-                fprintf(stdout, "iteration %d\n", i);
+                //fprintf(stdout, "iteration %d\n", i);
                 single_iteration(r, t, power, row, col, Cap_1, Rx_1, Ry_1, Rz_1, step);
                 FLOAT* tmp = t;
                 t = r;
