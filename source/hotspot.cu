@@ -101,7 +101,7 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
 
     FLOAT *DEBBUG_HOST;
 
-    DEBBUG_HOST = calloc (row*col,sizeof(FLOAT));
+    DEBBUG_HOST = (FLOAT *)calloc (row*col,sizeof(FLOAT));
 
     int block_r = BLOCK_SIZE_R;
     int block_c = BLOCK_SIZE_C;
