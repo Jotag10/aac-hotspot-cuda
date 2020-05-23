@@ -49,7 +49,7 @@ __constant__ FLOAT amb_temp_dev;
 
 __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, 
         FLOAT *Cap_1_dev, FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev,
-        int *size_dev) {
+        int *size_dev, FLOAT *DEBUG) {
 //__global__ void kernel (FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT *Cap_1_dev) {
     // FIXME assumi que #colunas=#linhas
     unsigned int column = blockIdx.x*blockDim.x + threadIdx.x;
@@ -61,6 +61,7 @@ __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev,
     int size = *size_dev;
     //result_dev[size*size] = 1; 
     if (row > 15 && row < size - 1 &&  column < size - 1 ) {
+        DEBUG[row*size+column] = temp_dev[row*size+column];
         result_dev[row*size+column] = 1.f; /*
         result_dev[row*size+column] =temp_dev[row*size+column]+ 
              ( (*Cap_1_dev) * (power_dev[row*size+column] + 
@@ -98,6 +99,10 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     int chunks_in_row = col/BLOCK_SIZE_C;
     int chunks_in_col = row/BLOCK_SIZE_R;
 
+    FLOAT *DEBBUG_HOST;
+
+    DEBBUG_HOST = calloc (row*col,sizeof(FLOAT));
+
     int block_r = BLOCK_SIZE_R;
     int block_c = BLOCK_SIZE_C;
 
@@ -120,6 +125,9 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     err = cudaMalloc((void **)&temp_dev, (size_t)(sizeof(FLOAT)*row*col));
     int *size_dev = NULL;
     err = cudaMalloc((void **)&size_dev, (size_t)sizeof(int));
+    
+    FLOAT *DEBUG = NULL;
+    err = cudaMalloc((void **)&DEBUG, (size_t)(sizeof(FLOAT)*row*col));
     
     err = cudaMemcpy(Ry_1_dev, &Ry_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
     err = cudaMemcpy(Rx_1_dev, &Rx_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
@@ -150,6 +158,9 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     err = cudaMemcpy(result, temp_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
     printf("result[17597] - %lf\n", result[17597]);
 
+    err = cudaMemcpy(DEBBUG_HOST, DEBUG, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
+    printf("DEBUG[17597] - %lf\n", DEBBUG_HOST[17597]);
+    
     if (err != cudaSuccess)
     {
         fprintf(stderr, "Failed to copy vector result from device to host (error code %s)!\n", cudaGetErrorString(err));      
