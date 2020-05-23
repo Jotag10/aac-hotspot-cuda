@@ -43,6 +43,39 @@ const FLOAT amb_temp = 80.0;
 
 int num_omp_threads;
 
+
+__constant__ FLOAT amb_temp_dev;
+#define THREADS_PER_BLOCK 512
+
+__global__ void kernel (FLOAT Ry_1_dev, FLOAT Rx_1_dev, FLOAT Rz_1_dev, 
+        FLOAT Cap_1_dev, FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev
+        int size_dev, int BLOCK_SIZE_R_dev, int BLOCK_SIZE_C_dev) {
+    // FIXME assumi que #colunas=#linhas
+    unsigned int column = blockIdx.x*blockDim.x + threadIdx.x;
+    unsigned int row = blockIdx.y;
+    /*
+    if (row >= BLOCK_SIZE_R_dev && row < size-BLOCK_SIZE_R_dev
+            && column > BLOCK_SIZE_C_dev && column < size-BLOCK_SIZE_C_dev) */
+
+    result_dev[row*size_dev+column] =temp_dev[row*size_dev+column]+ 
+         ( Cap_1_dev * (power_dev[row*size_dev+column] + 
+        (temp_dev[(row+1)*size_dev+column] + temp_dev[(row-1)*size_dev+column] - 2.f*temp_dev[row*size_dev+column]) * Ry_1_dev + 
+        (temp_dev[row*size_dev+column+1] + temp_dev[row*size_dev+column-1] - 2.f*temp_dev[row*size_dev+column]) * Rx_1_dev + 
+        (amb_temp_dev - temp_dev[row*size_dev+column]) * Rz_1_dev));
+    
+
+    /*
+    for ( r = r_start; r < r_start + BLOCK_SIZE_R; ++r ) {
+        for ( c = c_start; c < c_start + BLOCK_SIZE_C; ++c ) {
+            result[r*col+c] =temp[r*col+c]+ 
+                 ( Cap_1 * (power[r*col+c] + 
+                (temp[(r+1)*col+c] + temp[(r-1)*col+c] - 2.f*temp[r*col+c]) * Ry_1 + 
+                (temp[r*col+c+1] + temp[r*col+c-1] - 2.f*temp[r*col+c]) * Rx_1 + 
+                (amb_temp - temp[r*col+c]) * Rz_1));
+        }
+    }*/
+}
+
 /* Single iteration of the transient solver in the grid model.
  * advances the solution of the discretized difference equations 
  * by one time step
@@ -57,6 +90,155 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     int num_chunk = row*col / (BLOCK_SIZE_R * BLOCK_SIZE_C);
     int chunks_in_row = col/BLOCK_SIZE_C;
     int chunks_in_col = row/BLOCK_SIZE_R;
+
+    // Error code to check return values for CUDA calls
+    cudaError_t err = cudaSuccess;
+
+    FLOAT Ry_1_dev;
+    
+    FLOAT *Ry_1_dev = NULL;
+    err = cudaMalloc((void **)&Ry_1_dev, (size_t)sizeof(FLOAT));
+    if (err != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to allocate device Ry_1_dev (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    FLOAT *Rx_1_dev = NULL;
+    err = cudaMalloc((void **)&Rx_1_dev, (size_t)sizeof(FLOAT));
+    if (err != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to allocate device Ry_1_dev (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    FLOAT *Rz_1_dev = NULL;
+    err = cudaMalloc((void **)&Rz_1_dev, (size_t)sizeof(FLOAT));
+    if (err != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to allocate device Ry_1_dev (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    FLOAT *Cap_1_dev = NULL;
+    err = cudaMalloc((void **)&Cap_1_dev, (size_t)sizeof(FLOAT));
+    if (err != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to allocate device Ry_1_dev (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    FLOAT *result_dev = NULL;
+    err = cudaMalloc((void **)&result_dev, (size_t)(sizeof(FLOAT)*col*row));
+    if (err != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to allocate device Ry_1_dev (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    FLOAT *power_dev = NULL;
+    err = cudaMalloc((void **)&power_dev, (size_t)(sizeof(FLOAT)*row*col));
+    if (err != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to allocate device Ry_1_dev (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    FLOAT *temp_dev = NULL;
+    err = cudaMalloc((void **)&temp_dev, (size_t)(sizeof(FLOAT)*row*col));
+    if (err != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to allocate device Ry_1_dev (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    FLOAT *size_dev = NULL;
+    err = cudaMalloc((void **)&size_dev, (size_t)sizeof(FLOAT));
+    if (err != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to allocate device Ry_1_dev (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    FLOAT *BLOCK_SIZE_R_dev = NULL;
+    err = cudaMalloc((void **)&BLOCK_SIZE_R_dev, (size_t)sizeof(FLOAT));
+    if (err != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to allocate device Ry_1_dev (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    FLOAT *BLOCK_SIZE_C_dev = NULL;
+    err = cudaMalloc((void **)&BLOCK_SIZE_C_dev, (size_t)sizeof(FLOAT));
+    if (err != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to allocate device Ry_1_dev (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    
+    err = cudaMemcpy(Ry_1_dev, Ry_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Failed to copy Rx_1 from host to device (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    err = cudaMemcpy(Rx_1_dev, Rx_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Failed to copy Ry_1 from host to device (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    err = cudaMemcpy(Rz_1_dev, Rz_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Failed to copy Rz_1 from host to device (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    err = cudaMemcpy(Cap_1_dev, Cap_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Failed to copy vector A from host to device (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    err = cudaMemcpy(result_dev, result, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Failed to copy vector A from host to device (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    err = cudaMemcpy(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Failed to copy vector A from host to device (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    err = cudaMemcpy(power_dev, power, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Failed to copy vector A from host to device (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    err = cudaMemcpy(size_dev, col, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Failed to copy vector A from host to device (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    err = cudaMemcpy(BLOCK_SIZE_R_dev, BLOCK_SIZE_R, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Failed to copy vector A from host to device (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+    err = cudaMemcpy(BLOCK_SIZE_C_dev, BLOCK_SIZE_C, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Failed to copy vector A from host to device (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+
+    //copy amb_temp to device
+    cudaMemcpyToSymbol(amb_temp_dev, &amb_temp, (size_t)sizeof(FLOAT));
+    
+    int n_blocks = (col*row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK;
+
+    kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
+        Cap_1_dev, result_dev, temp_dev, power_dev
+        size_dev, BLOCK_SIZE_R_dev, BLOCK_SIZE_C_dev);
+    err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Failed to launch vectorAdd kernel (error code %s)!\n", cudaGetErrorString(err));                
+        exit(EXIT_FAILURE);
+    }
+
+    err = cudaMemcpy(result, result_dev, row*col, cudaMemcpyDeviceToHost);                                                            
+
+    if (err != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to copy vector C from device to host (error code %s)!\n", cudaGetErrorString(err));      
+        exit(EXIT_FAILURE);
+    }
 
     for ( chunk = 0; chunk < num_chunk; ++chunk )
     {
@@ -123,18 +305,8 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
             }
             continue;
         }
-
-        for ( r = r_start; r < r_start + BLOCK_SIZE_R; ++r ) {
-            for ( c = c_start; c < c_start + BLOCK_SIZE_C; ++c ) {
-            /* Update Temperatures */
-                result[r*col+c] =temp[r*col+c]+ 
-                     ( Cap_1 * (power[r*col+c] + 
-                    (temp[(r+1)*col+c] + temp[(r-1)*col+c] - 2.f*temp[r*col+c]) * Ry_1 + 
-                    (temp[r*col+c+1] + temp[r*col+c-1] - 2.f*temp[r*col+c]) * Rx_1 + 
-                    (amb_temp - temp[r*col+c]) * Rz_1));
-            }
-        }
     }
+
 }
 
 /* Transient solver driver routine: simply converts the heat 
