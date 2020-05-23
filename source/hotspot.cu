@@ -144,7 +144,7 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
         exit(EXIT_FAILURE);
     }
 
-    err = cudaMemcpy(result, result_dev, row*col, cudaMemcpyDeviceToHost);                                                            
+    err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
 
     if (err != cudaSuccess)
     {
