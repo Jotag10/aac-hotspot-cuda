@@ -94,8 +94,6 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     // Error code to check return values for CUDA calls
     cudaError_t err = cudaSuccess;
 
-    FLOAT Ry_1_dev;
-    
     FLOAT *Ry_1_dev = NULL;
     err = cudaMalloc((void **)&Ry_1_dev, (size_t)sizeof(FLOAT));
     if (err != cudaSuccess)
@@ -223,9 +221,9 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     
     int n_blocks = (col*row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK;
 
-    kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
-        Cap_1_dev, result_dev, temp_dev, power_dev
-        size_dev, BLOCK_SIZE_R_dev, BLOCK_SIZE_C_dev);
+    kernel<<<n_blocks, THREADS_PER_BLOCK>>> (*Ry_1_dev, *Rx_1_dev, *Rz_1_dev, 
+        *Cap_1_dev, result_dev, temp_dev, power_dev
+        *size_dev, *BLOCK_SIZE_R_dev, *BLOCK_SIZE_C_dev);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
         fprintf(stderr, "Failed to launch vectorAdd kernel (error code %s)!\n", cudaGetErrorString(err));                
