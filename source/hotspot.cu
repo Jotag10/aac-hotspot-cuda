@@ -60,7 +60,7 @@ __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev,
     
     int size = *size_dev;
     //result_dev[size*size] = 1; 
-    if (row > 1 && row < size - 1 ) {
+    //if (row > 1 && row < size - 1 ) {
         *size_dev = 1023;
         DEBUG[row*size+column] = temp_dev[row*size+column];
         result_dev[row*size+column] =temp_dev[row*size+column]+ 
@@ -69,7 +69,7 @@ __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev,
             (temp_dev[row*size+column+1] + temp_dev[row*size+column-1] - 2.f*temp_dev[row*size+column]) * (*Rx_1_dev) + 
             (amb_temp_dev - temp_dev[row*size+column]) * (*Rz_1_dev)));
             
-    }
+    //}
 
     /*
     for ( r = r_start; r < r_start + BLOCK_SIZE_R; ++r ) {
