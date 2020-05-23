@@ -122,7 +122,7 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     //    exit(EXIT_FAILURE);
     //}
     FLOAT *Cap_1_dev = NULL;
-    //err = cudaMalloc((void **)&Cap_1_dev, (size_t)sizeof(FLOAT));
+    err = cudaMalloc((void **)&Cap_1_dev, (size_t)sizeof(FLOAT));
     //if (err != cudaSuccess)
     //{
     //    fprintf(stderr, "Failed to allocate device Ry_1_dev (error code %s)!\n", cudaGetErrorString(err));
