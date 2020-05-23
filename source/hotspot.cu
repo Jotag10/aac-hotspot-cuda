@@ -157,7 +157,7 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     }
     //printf("result-dev[17597] - %lf\n", result_dev[17597]);
     //err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
-    err = cudaMemcpy(DEBUG_INT, size_dev, (size_t)(sizeof(FLOAT)), cudaMemcpyDeviceToHost);                                                            
+    err = cudaMemcpy(&DEBUG_INT, size_dev, (size_t)(sizeof(FLOAT)), cudaMemcpyDeviceToHost);                                                            
     printf("size - %d\n", DEBUG_INT);
 
     err = cudaMemcpy(DEBBUG_HOST, DEBUG, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
