@@ -148,7 +148,7 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
 
     if (err != cudaSuccess)
     {
-        fprintf(stderr, "Failed to copy vector C from device to host (error code %s)!\n", cudaGetErrorString(err));      
+        fprintf(stderr, "Failed to copy vector result from device to host (error code %s)!\n", cudaGetErrorString(err));      
         exit(EXIT_FAILURE);
     }
 
@@ -269,6 +269,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
                 #ifdef VERBOSE
                 fprintf(stdout, "iteration %d\n", i++);
                 #endif
+                fprintf(stdout, "iteration %d\n", i++);
                 single_iteration(r, t, power, row, col, Cap_1, Rx_1, Ry_1, Rz_1, step);
                 FLOAT* tmp = t;
                 t = r;
