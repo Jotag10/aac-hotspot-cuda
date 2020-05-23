@@ -186,7 +186,7 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     //    fprintf(stderr, "Failed to copy Rz_1 from host to device (error code %s)!\n", cudaGetErrorString(err));
     //    exit(EXIT_FAILURE);
     //}
-    //err = cudaMemcpy(Cap_1_dev, &Cap_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(Cap_1_dev, &Cap_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
     //if (err != cudaSuccess) {
     //    fprintf(stderr, "Failed to copy vector A from host to device (error code %s)!\n", cudaGetErrorString(err));
     //    exit(EXIT_FAILURE);
@@ -226,7 +226,7 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     cudaMemcpyToSymbol(amb_temp_dev, &amb_temp, (size_t)sizeof(FLOAT));
     
     int n_blocks = (col*row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK;
-    printf("n_blocks:%d", n_blocks);
+    //printf("n_blocks:%d", n_blocks);
     
     //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (*Ry_1_dev, *Rx_1_dev, *Rz_1_dev, 
     //    *Cap_1_dev, result_dev, temp_dev, power_dev,
@@ -249,6 +249,7 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     cudaFree(result_dev);
     cudaFree(temp_dev);
     cudaFree(power_dev);
+    cudaFree(Cap_1_dev);
 
     for ( chunk = 0; chunk < num_chunk; ++chunk )
     {
