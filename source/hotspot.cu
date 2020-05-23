@@ -56,12 +56,14 @@ __global__ void kernel (FLOAT Ry_1_dev, FLOAT Rx_1_dev, FLOAT Rz_1_dev,
     /*
     if (row >= BLOCK_SIZE_R_dev && row < size-BLOCK_SIZE_R_dev
             && column > BLOCK_SIZE_C_dev && column < size-BLOCK_SIZE_C_dev) */
-
-    result_dev[row*size_dev+column] =temp_dev[row*size_dev+column]+ 
-         ( Cap_1_dev * (power_dev[row*size_dev+column] + 
-        (temp_dev[(row+1)*size_dev+column] + temp_dev[(row-1)*size_dev+column] - 2.f*temp_dev[row*size_dev+column]) * Ry_1_dev + 
-        (temp_dev[row*size_dev+column+1] + temp_dev[row*size_dev+column-1] - 2.f*temp_dev[row*size_dev+column]) * Rx_1_dev + 
-        (amb_temp_dev - temp_dev[row*size_dev+column]) * Rz_1_dev));
+    
+    if (row*column < size_dev*size_dev) {
+        result_dev[row*size_dev+column] =temp_dev[row*size_dev+column]+ 
+             ( Cap_1_dev * (power_dev[row*size_dev+column] + 
+            (temp_dev[(row+1)*size_dev+column] + temp_dev[(row-1)*size_dev+column] - 2.f*temp_dev[row*size_dev+column]) * Ry_1_dev + 
+            (temp_dev[row*size_dev+column+1] + temp_dev[row*size_dev+column-1] - 2.f*temp_dev[row*size_dev+column]) * Rx_1_dev + 
+            (amb_temp_dev - temp_dev[row*size_dev+column]) * Rz_1_dev));
+    }
     
 
     /*
