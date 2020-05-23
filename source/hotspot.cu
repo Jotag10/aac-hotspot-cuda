@@ -59,7 +59,7 @@ __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev,
             && column > BLOCK_SIZE_C_dev && column < size-BLOCK_SIZE_C_dev) */
     
     int size = *size_dev;
-    result_dev[0] = 1; 
+    result_dev[size*size+15] = 1; 
     if (row < size &&  column < size) {
         /*
         result_dev[row*size+column] =temp_dev[row*size+column]+ 
