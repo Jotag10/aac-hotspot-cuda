@@ -59,7 +59,7 @@ __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev,
             && column > BLOCK_SIZE_C_dev && column < size-BLOCK_SIZE_C_dev) */
     
     int size = *size_dev;
-    
+    result[0] = 1; 
     if (row < size &&  column < size) {
         /*
         result_dev[row*size+column] =temp_dev[row*size+column]+ 
@@ -271,7 +271,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
                 #ifdef VERBOSE
                 fprintf(stdout, "iteration %d\n", i++);
                 #endif
-                fprintf(stdout, "iteration %d\n", i++);
+                fprintf(stdout, "iteration %d\n", i);
                 single_iteration(r, t, power, row, col, Cap_1, Rx_1, Ry_1, Rz_1, step);
                 FLOAT* tmp = t;
                 t = r;
