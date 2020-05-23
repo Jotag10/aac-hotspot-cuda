@@ -91,6 +91,9 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     int chunks_in_row = col/BLOCK_SIZE_C;
     int chunks_in_col = row/BLOCK_SIZE_R;
 
+    int block_r = BLOCK_SIZE_R;
+    int block_c = BLOCK_SIZE_C;
+
     // Error code to check return values for CUDA calls
     cudaError_t err = cudaSuccess;
 
@@ -205,12 +208,12 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
         fprintf(stderr, "Failed to copy vector A from host to device (error code %s)!\n", cudaGetErrorString(err));
         exit(EXIT_FAILURE);
     }
-    err = cudaMemcpy(BLOCK_SIZE_R_dev, &BLOCK_SIZE_R, (size_t)sizeof(int), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(BLOCK_SIZE_R_dev, &block_r, (size_t)sizeof(int), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
         fprintf(stderr, "Failed to copy vector A from host to device (error code %s)!\n", cudaGetErrorString(err));
         exit(EXIT_FAILURE);
     }
-    err = cudaMemcpy(BLOCK_SIZE_C_dev, &BLOCK_SIZE_C, (size_t)sizeof(int), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(BLOCK_SIZE_C_dev, &block_c, (size_t)sizeof(int), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) {
         fprintf(stderr, "Failed to copy vector A from host to device (error code %s)!\n", cudaGetErrorString(err));
         exit(EXIT_FAILURE);
