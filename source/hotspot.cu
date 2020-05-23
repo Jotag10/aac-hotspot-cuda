@@ -226,7 +226,8 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     cudaMemcpyToSymbol(amb_temp_dev, &amb_temp, (size_t)sizeof(FLOAT));
     
     int n_blocks = (col*row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK;
-
+    printf("n_blocks:%d", n_blocks);
+    
     //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (*Ry_1_dev, *Rx_1_dev, *Rz_1_dev, 
     //    *Cap_1_dev, result_dev, temp_dev, power_dev,
     //    *size_dev, *BLOCK_SIZE_R_dev, *BLOCK_SIZE_C_dev);
