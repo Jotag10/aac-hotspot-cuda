@@ -146,7 +146,7 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     
     kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
         Cap_1_dev, result_dev, temp_dev, power_dev,
-        size_dev);
+        size_dev, DEBUG);
     //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (result_dev, temp_dev, power_dev, Cap_1_dev);
     err = cudaGetLastError();
     if (err != cudaSuccess) {
