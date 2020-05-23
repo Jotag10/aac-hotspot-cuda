@@ -3,7 +3,7 @@ HOST_CC = g++
 HOST_CC_FLAGS = -O3
 
 CUDA_CC = nvcc
-CUDA_CC_FLAGS = -O3 -lm
+CUDA_CC_FLAGS = -g -O3 -lm
 
 DATA_DIR = $(HOME)/apps/hotspot/data
 
