@@ -50,7 +50,7 @@ __constant__ FLOAT amb_temp_dev;
 //__global__ void kernel (FLOAT Ry_1_dev, FLOAT Rx_1_dev, FLOAT Rz_1_dev, 
 //        FLOAT Cap_1_dev, FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev,
 //        int size_dev, int BLOCK_SIZE_R_dev, int BLOCK_SIZE_C_dev) {
-__global__ void kernel (FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev) {
+__global__ void kernel (FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT Cap_1_dev) {
     // FIXME assumi que #colunas=#linhas
     unsigned int column = blockIdx.x*blockDim.x + threadIdx.x;
     unsigned int row = blockIdx.y;
