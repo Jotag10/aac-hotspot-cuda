@@ -45,7 +45,7 @@ int num_omp_threads;
 
 
 __constant__ FLOAT amb_temp_dev;
-#define THREADS_PER_BLOCK 512
+#define THREADS_PER_BLOCK 256
 
 //__global__ void kernel (FLOAT Ry_1_dev, FLOAT Rx_1_dev, FLOAT Rz_1_dev, 
 //        FLOAT Cap_1_dev, FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev,
@@ -245,6 +245,10 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
         fprintf(stderr, "Failed to copy vector C from device to host (error code %s)!\n", cudaGetErrorString(err));      
         exit(EXIT_FAILURE);
     }
+
+    cudaFree(result_dev);
+    cudaFree(temp_dev);
+    cudaFree(power_dev);
 
     for ( chunk = 0; chunk < num_chunk; ++chunk )
     {
