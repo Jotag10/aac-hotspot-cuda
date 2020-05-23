@@ -59,7 +59,6 @@ __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev,
             && column > BLOCK_SIZE_C_dev && column < size-BLOCK_SIZE_C_dev) */
     
     int size = *size_dev;
-    fprintf(stdout,"size-%d\n",size);
     //result_dev[size*size] = 1; 
     if (row < size &&  column < size) {
         
@@ -128,6 +127,7 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     //err = cudaMemcpy(result_dev, result, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
     err = cudaMemcpy(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
     err = cudaMemcpy(power_dev, power, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
+    printf("col-%d\n",col);
     err = cudaMemcpy(size_dev, &col, (size_t)sizeof(int), cudaMemcpyHostToDevice);
 
     //copy amb_temp to device
