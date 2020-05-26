@@ -199,9 +199,9 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 
         kernel_ifs(result, temp, power, col, row, Cap_1, Rx_1, Ry_1, Rz_1, amb_temp);
         
-        FLOAT* tmp = t;
-        t = r;
-        r = tmp;
+        FLOAT* tmp = temp;
+        temp = result;
+        result = tmp;
         /*
         FLOAT* tmp_dev = temp_dev;
         temp_dev = result_dev;
