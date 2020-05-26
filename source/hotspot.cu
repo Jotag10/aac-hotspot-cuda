@@ -48,7 +48,7 @@ int num_omp_threads;
 
 
 __constant__ FLOAT amb_temp_dev;
-#define THREADS_PER_BLOCK 529
+#define THREADS_PER_BLOCK 512
 
 __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, 
         FLOAT *Cap_1_dev, FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev,
@@ -64,7 +64,7 @@ __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev,
     int size = *size_dev;
     //result_dev[size*size] = 1; 
     //if (column < size*size - 1  && column > size+1) {
-    if (row < size - 1  && row > 1) {
+    if (row < size - 15  && row > 15) {
         //*size_dev = 1023;
         //DEBUG[row*size+column] = temp_dev[row*size+column];
         /*
@@ -150,7 +150,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     //copy amb_temp to device
     cudaMemcpyToSymbol(amb_temp_dev, &amb_temp, (size_t)sizeof(FLOAT));
 
-    dim3 blockDist(256,1,1);
+    dim3 blockDist(THREADS_PER_BLOCK,1,1);
     dim3 gridDist((row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col, 1);
     //int n_blocks = (col*row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK;
 
@@ -162,9 +162,9 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         #ifdef VERBOSE
         fprintf(stdout, "iteration %d\n", i++);
         #endif
-        //result = r;
+        result = r;
 
-        //err = cudaMemcpy(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
+        err = cudaMemcpy(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
         
         /*
         err = cudaMemcpy((temp_dev+(BLOCK_SIZE-1)*col), (temp+(BLOCK_SIZE-1)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
@@ -201,10 +201,10 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 
 
         kernel_ifs(result, temp, power, col, row, Cap_1, Rx_1, Ry_1, Rz_1, amb_temp);
-        /*
+        
         tmp = temp;
         temp = result;
-        r = tmp;*/
+        r = tmp;
         /*
         FLOAT* tmp_dev = temp_dev;
         temp_dev = result_dev;
