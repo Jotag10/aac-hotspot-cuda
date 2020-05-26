@@ -45,7 +45,7 @@ int num_omp_threads;
 
 
 __constant__ FLOAT amb_temp_dev;
-#define THREADS_PER_BLOCK 1024
+#define THREADS_PER_BLOCK 256
 
 __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, 
         FLOAT *Cap_1_dev, FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev,
@@ -53,27 +53,29 @@ __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev,
 //__global__ void kernel (FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT *Cap_1_dev) {
     // FIXME assumi que #colunas=#linhas
     unsigned int column = blockIdx.x*blockDim.x + threadIdx.x;
-    //unsigned int row = blockIdx.y;
+    unsigned int row = blockIdx.y;
     /*
     if (row >= BLOCK_SIZE_R_dev && row < size-BLOCK_SIZE_R_dev
             && column > BLOCK_SIZE_C_dev && column < size-BLOCK_SIZE_C_dev) */
     
     int size = *size_dev;
     //result_dev[size*size] = 1; 
-    if (column < size*size - 1  && column > size+1) {
+    //if (column < size*size - 1  && column > size+1) {
+    if (row < size - 1  && row > 1) {
         //*size_dev = 1023;
         //DEBUG[row*size+column] = temp_dev[row*size+column];
+        /*
         result_dev[column] =temp_dev[column]+ 
              ( (*Cap_1_dev) * (power_dev[column] + 
             (temp_dev[size+column] + temp_dev[column-size] - 2.f*temp_dev[column]) * (*Ry_1_dev) + 
             (temp_dev[column+1] + temp_dev[column-1] - 2.f*temp_dev[column]) * (*Rx_1_dev) + 
-            (amb_temp_dev - temp_dev[column]) * (*Rz_1_dev)));
-        /*result_dev[row*size+column] =temp_dev[row*size+column]+ 
+            (amb_temp_dev - temp_dev[column]) * (*Rz_1_dev)));*/
+        result_dev[row*size+column] =temp_dev[row*size+column]+ 
              ( (*Cap_1_dev) * (power_dev[row*size+column] + 
             (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (*Ry_1_dev) + 
             (temp_dev[row*size+column+1] + temp_dev[row*size+column-1] - 2.f*temp_dev[row*size+column]) * (*Rx_1_dev) + 
             (amb_temp_dev - temp_dev[row*size+column]) * (*Rz_1_dev)));
-          */  
+            
     }
 
     /*
@@ -108,9 +110,6 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     FLOAT *DEBBUG_HOST;
 
     DEBBUG_HOST = (FLOAT *)calloc (row*col,sizeof(FLOAT));
-
-    int block_r = BLOCK_SIZE_R;
-    int block_c = BLOCK_SIZE_C;
 
     // Error code to check return values for CUDA calls
     cudaError_t err = cudaSuccess;
@@ -147,10 +146,12 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     //copy amb_temp to device
     cudaMemcpyToSymbol(amb_temp_dev, &amb_temp, (size_t)sizeof(FLOAT));
     
-    int n_blocks = (col*row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK;
-    //printf("n_blocks:%d", n_blocks);
+    dim3 blockDist(256,1,1);
+    dim3 gridDist((row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, (col+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, 1);
+    //int n_blocks = (col*row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK;
     
-    kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
+    //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
+    kernel<<<gridDist, blockDist>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
         Cap_1_dev, result_dev, temp_dev, power_dev,
         size_dev, DEBUG);
     //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (result_dev, temp_dev, power_dev, Cap_1_dev);
