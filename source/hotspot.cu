@@ -217,6 +217,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
         kernel<<<gridDist, blockDist>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, Cap_1_dev, size_dev,
                 result_dev, temp_dev, power_dev, col_minus_1_dev, col_plus_1_dev, DEBUG);
+        cudaDeviceSynchronize();
         //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (result_dev, temp_dev, power_dev, Cap_1_dev);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
