@@ -82,7 +82,7 @@ __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOA
             (amb_temp_dev - temp_dev[row*size+column]) * (*Rz_1_dev)));
     } else*/ if (row < size - 15  && row > 15) {
         //*size_dev = 1023;
-        //DEBUG[row*size+column] = temp_dev[row*size+column];
+        DEBUG[row*size+column] = 1;
         /*
         result_dev[column] =temp_dev[column]+ 
              ( (*Cap_1_dev) * (power_dev[column] + 
@@ -224,10 +224,14 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         }
         //err = cudaMemcpy(&DEBUG_INT, size_dev, (size_t)(sizeof(FLOAT)), cudaMemcpyDeviceToHost);                                                            
         //printf("size - %d\n", DEBUG_INT);
-
-        //err = cudaMemcpy(DEBBUG_HOST, DEBUG, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
-        //for (int i = 0; i < 1024*1024; i++)
-        //    printf("DEBUG[%d] - %lf   temp[%d] - %lf\n",i, DEBBUG_HOST[i], i, temp[i]);
+        
+        int soma = 0;
+        err = cudaMemcpy(DEBBUG_HOST, DEBUG, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
+        for (int i = 0; i < 1024*1024; i++)
+            if (DEBUG[i] == 1)
+                soma++;
+        printf("soma:%d\n",soma);
+            //printf("DEBUG[%d] - %lf   temp[%d] - %lf\n",i, DEBBUG_HOST[i], i, temp[i]);
         //if (i == num_iterations-1)err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
         if (i == num_iterations-1) 
             err = cudaMemcpyAsync(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
