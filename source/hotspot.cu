@@ -190,7 +190,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         //for (int i = 0; i < 1024*1024; i++)
         //    printf("DEBUG[%d] - %lf   temp[%d] - %lf\n",i, DEBBUG_HOST[i], i, temp[i]);
         //if (i == num_iterations-1)err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
-        err = cudaMemcpyAsync(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
+        err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
         if (err != cudaSuccess) {
             fprintf(stderr, "Failed to copy vector result from device to host (error code %s)!\n", cudaGetErrorString(err));      
             exit(EXIT_FAILURE);
