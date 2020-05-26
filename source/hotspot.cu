@@ -108,6 +108,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 	#ifdef VERBOSE
 	int i = 0;
 	#endif
+    long soma = 0;
 
 	FLOAT grid_height = chip_height / row;
 	FLOAT grid_width = chip_width / col;
@@ -225,12 +226,11 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         //err = cudaMemcpy(&DEBUG_INT, size_dev, (size_t)(sizeof(FLOAT)), cudaMemcpyDeviceToHost);                                                            
         //printf("size - %d\n", DEBUG_INT);
         
-        int soma = 0;
         err = cudaMemcpy(DEBBUG_HOST, DEBUG, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
         for (int j = 0; j < 1024*1024; j++)
             if (DEBUG[j] == 1.0)
                 soma++;
-        printf("soma:%d\n",soma);
+        printf("soma:%lf\n",soma);
             //printf("DEBUG[%d] - %lf   temp[%d] - %lf\n",i, DEBBUG_HOST[i], i, temp[i]);
         //if (i == num_iterations-1)err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
         if (i == num_iterations-1) 
