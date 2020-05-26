@@ -48,7 +48,7 @@ int num_omp_threads;
 
 
 __constant__ FLOAT amb_temp_dev;
-#define THREADS_PER_BLOCK 256
+#define THREADS_PER_BLOCK 512
 
 __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, 
         FLOAT *Cap_1_dev, FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev,
@@ -164,8 +164,8 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         #endif
 
 
-        err = cudaMemcpy((temp_dev+(BLOCK_SIZE-1)*col), (temp+(BLOCK_SIZE-1)*col), (size_t)(sizeof(FLOAT)*row), cudaMemcpyHostToDevice);
-        err = cudaMemcpy((temp_dev+(row-BLOCK_SIZE)*col), (temp+(row-BLOCK_SIZE)*col), (size_t)(sizeof(FLOAT)*row), cudaMemcpyHostToDevice);
+        err = cudaMemcpy((temp_dev+(BLOCK_SIZE-1)*col), (temp+(BLOCK_SIZE-1)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
+        err = cudaMemcpy((temp_dev+(row-BLOCK_SIZE)*col), (temp+(row-BLOCK_SIZE)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
         
         for (int i = 0; i < row; i++) {
             err = cudaMemcpy((temp_dev + i*row + BLOCK_SIZE-1), (temp + i*row+BLOCK_SIZE-1), (size_t)(sizeof(FLOAT)), cudaMemcpyHostToDevice);
