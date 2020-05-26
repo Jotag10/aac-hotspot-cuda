@@ -204,8 +204,8 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         //}
 
         for (int j = 0; j < row; j++) {
-            col_minus_1 = *(temp + j*row+BLOCK_SIZE-1);
-            col_plus_1 = *(temp + j*row + col-BLOCK_SIZE);
+            col_minus_1[j] = *(temp + j*row+BLOCK_SIZE-1);
+            col_plus_1[j] = *(temp + j*row + col-BLOCK_SIZE);
         }
 
         err = cudaMemcpyAsync(col_minus_1_dev, col_minus_1, (size_t)(sizeof(FLOAT)*row), cudaMemcpyHostToDevice);
