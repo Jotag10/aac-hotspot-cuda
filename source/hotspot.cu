@@ -163,16 +163,16 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         fprintf(stdout, "iteration %d\n", i++);
         #endif
 
-        err = cudaMemcpy(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
+        //err = cudaMemcpy(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
         
-        /*
+        
         err = cudaMemcpy((temp_dev+(BLOCK_SIZE-1)*col), (temp+(BLOCK_SIZE-1)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
         err = cudaMemcpy((temp_dev+(row-BLOCK_SIZE)*col), (temp+(row-BLOCK_SIZE)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
         
         for (int i = 0; i < row; i++) {
             err = cudaMemcpy((temp_dev + i*row + BLOCK_SIZE-1), (temp + i*row+BLOCK_SIZE-1), (size_t)(sizeof(FLOAT)), cudaMemcpyHostToDevice);
             err = cudaMemcpy((temp_dev + i*row + col-BLOCK_SIZE), (temp + i*row + col-BLOCK_SIZE), (size_t)(sizeof(FLOAT)), cudaMemcpyHostToDevice);
-        }*/
+        }
 
         //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
         kernel<<<gridDist, blockDist>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
@@ -184,14 +184,13 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
             fprintf(stderr, "Failed to launch vectorAdd kernel (error code %s)!\n", cudaGetErrorString(err));                
             exit(EXIT_FAILURE);
         }
-        err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
         //err = cudaMemcpy(&DEBUG_INT, size_dev, (size_t)(sizeof(FLOAT)), cudaMemcpyDeviceToHost);                                                            
         //printf("size - %d\n", DEBUG_INT);
 
         //err = cudaMemcpy(DEBBUG_HOST, DEBUG, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
         //for (int i = 0; i < 1024*1024; i++)
         //    printf("DEBUG[%d] - %lf   temp[%d] - %lf\n",i, DEBBUG_HOST[i], i, temp[i]);
-        
+        if (i == num_iterations-1)err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
         if (err != cudaSuccess) {
             fprintf(stderr, "Failed to copy vector result from device to host (error code %s)!\n", cudaGetErrorString(err));      
             exit(EXIT_FAILURE);
@@ -203,6 +202,10 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         FLOAT* tmp = t;
         t = r;
         r = tmp;
+        
+        FLOAT* tmp_dev = temp_dev;
+        temp_dev = result_dev;
+        result_dev = tmp_dev;
     }	
 
     cudaFree(result_dev);
