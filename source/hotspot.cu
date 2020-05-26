@@ -51,7 +51,7 @@ __constant__ FLOAT amb_temp_dev;
 __constant__ FLOAT Ry_1_dev;   
 __constant__ FLOAT Rx_1_dev;   
 __constant__ FLOAT Rz_1_dev; 
-__constant__ FLOAT Cap_1_dev_t;
+__constant__ FLOAT Cap_1_dev;
 __constant__ int size_dev;
 #define THREADS_PER_BLOCK 256
 
