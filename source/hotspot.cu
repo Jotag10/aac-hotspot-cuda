@@ -68,7 +68,7 @@ __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOA
     int size = *size_dev;
     //result_dev[size*size] = 1; 
     //if (column < size*size - 1  && column > size+1) {
-    if (column == BLOCK_SIZE && row != 0 && row != size-1) {
+    /*if (column == BLOCK_SIZE && row != 0 && row != size-1) {
         result_dev[row*size+column] =temp_dev[row*size+column]+ 
              ( (*Cap_1_dev) * (power_dev[row*size+column] + 
             (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (*Ry_1_dev) + 
@@ -80,7 +80,7 @@ __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOA
             (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (*Ry_1_dev) + 
             (col_plus_1_dev[row] + temp_dev[row*size+column-1] - 2.f*temp_dev[row*size+column]) * (*Rx_1_dev) + 
             (amb_temp_dev - temp_dev[row*size+column]) * (*Rz_1_dev)));
-    } else if (row < size - 15  && row > 15) {
+    } else*/ if (row < size - 15  && row > 15) {
         //*size_dev = 1023;
         DEBUG[row*size+column] = 1.0;
         /*
@@ -197,8 +197,8 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         //err = cudaMemcpyAsync(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
         
         
-        err = cudaMemcpyAsync((temp_dev+(BLOCK_SIZE-1)*col), (temp+(BLOCK_SIZE-1)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
-        err = cudaMemcpyAsync((temp_dev+(row-BLOCK_SIZE)*col), (temp+(row-BLOCK_SIZE)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
+        //err = cudaMemcpyAsync((temp_dev+(BLOCK_SIZE-1)*col), (temp+(BLOCK_SIZE-1)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
+        //err = cudaMemcpyAsync((temp_dev+(row-BLOCK_SIZE)*col), (temp+(row-BLOCK_SIZE)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
         
         //for (int j = 0; j < row; j++) {
         //    err = cudaMemcpyAsync((temp_dev + j*row + BLOCK_SIZE-1), (temp + j*row+BLOCK_SIZE-1), (size_t)(sizeof(FLOAT)), cudaMemcpyHostToDevice);
