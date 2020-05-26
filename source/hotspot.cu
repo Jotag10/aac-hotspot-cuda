@@ -162,6 +162,8 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         #ifdef VERBOSE
         fprintf(stdout, "iteration %d\n", i++);
         #endif
+        
+        err = cudaMemcpy(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
 
         //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
         kernel<<<gridDist, blockDist>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
@@ -181,8 +183,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         //for (int i = 0; i < 1024*1024; i++)
         //    printf("DEBUG[%d] - %lf   temp[%d] - %lf\n",i, DEBBUG_HOST[i], i, temp[i]);
         
-        if (err != cudaSuccess)
-        {
+        if (err != cudaSuccess) {
             fprintf(stderr, "Failed to copy vector result from device to host (error code %s)!\n", cudaGetErrorString(err));      
             exit(EXIT_FAILURE);
         }
