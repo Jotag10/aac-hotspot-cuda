@@ -169,9 +169,9 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         err = cudaMemcpy((temp_dev+(BLOCK_SIZE-1)*col), (temp+(BLOCK_SIZE-1)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
         err = cudaMemcpy((temp_dev+(row-BLOCK_SIZE)*col), (temp+(row-BLOCK_SIZE)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
         
-        for (int i = 0; i < row; i++) {
-            err = cudaMemcpy((temp_dev + i*row + BLOCK_SIZE-1), (temp + i*row+BLOCK_SIZE-1), (size_t)(sizeof(FLOAT)), cudaMemcpyHostToDevice);
-            err = cudaMemcpy((temp_dev + i*row + col-BLOCK_SIZE), (temp + i*row + col-BLOCK_SIZE), (size_t)(sizeof(FLOAT)), cudaMemcpyHostToDevice);
+        for (int j = 0; j < row; j++) {
+            err = cudaMemcpy((temp_dev + j*row + BLOCK_SIZE-1), (temp + j*row+BLOCK_SIZE-1), (size_t)(sizeof(FLOAT)), cudaMemcpyHostToDevice);
+            err = cudaMemcpy((temp_dev + j*row + col-BLOCK_SIZE), (temp + j*row + col-BLOCK_SIZE), (size_t)(sizeof(FLOAT)), cudaMemcpyHostToDevice);
         }
 
         //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
