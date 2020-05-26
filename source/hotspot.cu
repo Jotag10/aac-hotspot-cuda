@@ -234,7 +234,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         //printf("soma:%lf\n",soma);
             //printf("DEBUG[%d] - %lf   temp[%d] - %lf\n",i, DEBBUG_HOST[i], i, temp[i]);
         //if (i == num_iterations-1)err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
-        if (i == num_iterations-1) 
+        //if (i == num_iterations-1) 
             err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
         
         if (err != cudaSuccess) {
