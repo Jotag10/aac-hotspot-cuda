@@ -48,7 +48,7 @@ int num_omp_threads;
 
 
 __constant__ FLOAT amb_temp_dev;
-#define THREADS_PER_BLOCK 256
+#define THREADS_PER_BLOCK 529
 
 __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, 
         FLOAT *Cap_1_dev, FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev,
