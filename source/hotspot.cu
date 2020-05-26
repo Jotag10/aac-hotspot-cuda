@@ -48,14 +48,15 @@ int num_omp_threads;
 
 
 __constant__ FLOAT amb_temp_dev;
-__constant__ FLOAT Ry_1_dev;   
-__constant__ FLOAT Rx_1_dev;   
-__constant__ FLOAT Rz_1_dev; 
-__constant__ FLOAT Cap_1_dev;
-__constant__ int size_dev;
+//__constant__ FLOAT Ry_1_dev;   
+//__constant__ FLOAT Rx_1_dev;   
+//__constant__ FLOAT Rz_1_dev; 
+//__constant__ FLOAT Cap_1_dev;
+//__constant__ int size_dev;
 #define THREADS_PER_BLOCK 256
 
-__global__ void kernel ( FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT* col_minus_1_dev, FLOAT* col_plus_1_dev, FLOAT *DEBUG) {
+__global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOAT* Cap_1_dev, int* size_dev
+        FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT* col_minus_1_dev, FLOAT* col_plus_1_dev, FLOAT *DEBUG) {
 //__global__ void kernel (FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT *Cap_1_dev) {
     // FIXME assumi que #colunas=#linhas
     unsigned int column = blockIdx.x*blockDim.x + threadIdx.x;
@@ -64,21 +65,21 @@ __global__ void kernel ( FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, F
     if (row >= BLOCK_SIZE_R_dev && row < size-BLOCK_SIZE_R_dev
             && column > BLOCK_SIZE_C_dev && column < size-BLOCK_SIZE_C_dev) */
     
-    int size = size_dev;
+    int size = *size_dev;
     //result_dev[size*size] = 1; 
     //if (column < size*size - 1  && column > size+1) {
     if (column == BLOCK_SIZE && row != 0 && row != size-1) {
         result_dev[row*size+column] =temp_dev[row*size+column]+ 
-             ( (Cap_1_dev) * (power_dev[row*size+column] + 
-            (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (Ry_1_dev) + 
-            (temp_dev[row*size+column+1] + col_minus_1_dev[column] - 2.f*temp_dev[row*size+column]) * (Rx_1_dev) + 
-            (amb_temp_dev - temp_dev[row*size+column]) * (Rz_1_dev)));
+             ( (*Cap_1_dev) * (power_dev[row*size+column] + 
+            (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (*Ry_1_dev) + 
+            (temp_dev[row*size+column+1] + col_minus_1_dev[column] - 2.f*temp_dev[row*size+column]) * (*Rx_1_dev) + 
+            (amb_temp_dev - temp_dev[row*size+column]) * (*Rz_1_dev)));
     }else if (column == size - BLOCK_SIZE - 1 && row != 0 && row != size-1) {
         result_dev[row*size+column] =temp_dev[row*size+column]+ 
-             ( (Cap_1_dev) * (power_dev[row*size+column] + 
-            (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (Ry_1_dev) + 
-            (col_plus_1_dev[column] + temp_dev[row*size+column-1] - 2.f*temp_dev[row*size+column]) * (Rx_1_dev) + 
-            (amb_temp_dev - temp_dev[row*size+column]) * (Rz_1_dev)));
+             ( (*Cap_1_dev) * (power_dev[row*size+column] + 
+            (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (*Ry_1_dev) + 
+            (col_plus_1_dev[column] + temp_dev[row*size+column-1] - 2.f*temp_dev[row*size+column]) * (*Rx_1_dev) + 
+            (amb_temp_dev - temp_dev[row*size+column]) * (*Rz_1_dev)));
     } else if (row < size - 15  && row > 15) {
         //*size_dev = 1023;
         //DEBUG[row*size+column] = temp_dev[row*size+column];
@@ -89,10 +90,10 @@ __global__ void kernel ( FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, F
             (temp_dev[column+1] + temp_dev[column-1] - 2.f*temp_dev[column]) * (*Rx_1_dev) + 
             (amb_temp_dev - temp_dev[column]) * (*Rz_1_dev)));*/
         result_dev[row*size+column] =temp_dev[row*size+column]+ 
-             ( (Cap_1_dev) * (power_dev[row*size+column] + 
-            (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (Ry_1_dev) + 
-            (temp_dev[row*size+column+1] + temp_dev[row*size+column-1] - 2.f*temp_dev[row*size+column]) * (Rx_1_dev) + 
-            (amb_temp_dev - temp_dev[row*size+column]) * (Rz_1_dev)));
+             ( (*Cap_1_dev) * (power_dev[row*size+column] + 
+            (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (*Ry_1_dev) + 
+            (temp_dev[row*size+column+1] + temp_dev[row*size+column-1] - 2.f*temp_dev[row*size+column]) * (*Rx_1_dev) + 
+            (amb_temp_dev - temp_dev[row*size+column]) * (*Rz_1_dev)));
             
     }
 
@@ -150,33 +151,33 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     err = cudaMalloc((void **)&col_minus_1_dev, (size_t)(sizeof(FLOAT)*col));
     FLOAT *col_plus_1_dev = NULL;
     err = cudaMalloc((void **)&col_plus_1_dev, (size_t)(sizeof(FLOAT)*col));
-    //FLOAT *Ry_1_dev = NULL;
-    //err = cudaMalloc((void **)&Ry_1_dev, (size_t)sizeof(FLOAT));
-    //FLOAT *Rx_1_dev = NULL;
-    //err = cudaMalloc((void **)&Rx_1_dev, (size_t)sizeof(FLOAT));
-    //FLOAT *Rz_1_dev = NULL;
-    //err = cudaMalloc((void **)&Rz_1_dev, (size_t)sizeof(FLOAT));
-    //FLOAT *Cap_1_dev = NULL;
-    //err = cudaMalloc((void **)&Cap_1_dev, (size_t)sizeof(FLOAT));
-    //int *size_dev = NULL;
-    //err = cudaMalloc((void **)&size_dev, (size_t)sizeof(int));
+    FLOAT *Ry_1_dev = NULL;
+    err = cudaMalloc((void **)&Ry_1_dev, (size_t)sizeof(FLOAT));
+    FLOAT *Rx_1_dev = NULL;
+    err = cudaMalloc((void **)&Rx_1_dev, (size_t)sizeof(FLOAT));
+    FLOAT *Rz_1_dev = NULL;
+    err = cudaMalloc((void **)&Rz_1_dev, (size_t)sizeof(FLOAT));
+    FLOAT *Cap_1_dev = NULL;
+    err = cudaMalloc((void **)&Cap_1_dev, (size_t)sizeof(FLOAT));
+    int *size_dev = NULL;
+    err = cudaMalloc((void **)&size_dev, (size_t)sizeof(int));
     FLOAT *DEBUG = NULL;
     err = cudaMalloc((void **)&DEBUG, (size_t)(sizeof(FLOAT)*row*col));
     //transferir para o gpu
     err = cudaMemcpyAsync(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
     err = cudaMemcpyAsync(power_dev, power, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
     
-    //err = cudaMemcpyAsync(Ry_1_dev, &Ry_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
-    //err = cudaMemcpyAsync(Rx_1_dev, &Rx_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
-    //err = cudaMemcpyAsync(Rz_1_dev, &Rz_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
-    //err = cudaMemcpyAsync(Cap_1_dev, &Cap_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
-    //err = cudaMemcpyAsync(size_dev, &col, (size_t)sizeof(int), cudaMemcpyHostToDevice);
+    err = cudaMemcpyAsync(Ry_1_dev, &Ry_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    err = cudaMemcpyAsync(Rx_1_dev, &Rx_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    err = cudaMemcpyAsync(Rz_1_dev, &Rz_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    err = cudaMemcpyAsync(Cap_1_dev, &Cap_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    err = cudaMemcpyAsync(size_dev, &col, (size_t)sizeof(int), cudaMemcpyHostToDevice);
     //copy amb_temp to device
-    cudaMemcpyToSymbol(Ry_1_dev, &Ry_1,  (size_t)sizeof(FLOAT));
-    cudaMemcpyToSymbol(Rx_1_dev, &Rx_1,  (size_t)sizeof(FLOAT));
-    cudaMemcpyToSymbol(Rz_1_dev, &Rz_1,  (size_t)sizeof(FLOAT));
-    cudaMemcpyToSymbol(Cap_1_dev, &Cap_1, (size_t)sizeof(FLOAT));
-    cudaMemcpyToSymbol(size_dev, &col, (size_t)sizeof(FLOAT));
+    //cudaMemcpyToSymbol(Ry_1_dev, &Ry_1,  (size_t)sizeof(FLOAT));
+    //cudaMemcpyToSymbol(Rx_1_dev, &Rx_1,  (size_t)sizeof(FLOAT));
+    //cudaMemcpyToSymbol(Rz_1_dev, &Rz_1,  (size_t)sizeof(FLOAT));
+    //cudaMemcpyToSymbol(Cap_1_dev, &Cap_1, (size_t)sizeof(FLOAT));
+    //cudaMemcpyToSymbol(size_dev, &col, (size_t)sizeof(FLOAT));
 
     dim3 blockDist(THREADS_PER_BLOCK,1,1);
     dim3 gridDist((row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col, 1);
@@ -213,7 +214,8 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 
 
         //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
-        kernel<<<gridDist, blockDist>>> (result_dev, temp_dev, power_dev, col_minus_1_dev, col_plus_1_dev, DEBUG);
+        kernel<<<gridDist, blockDist>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, Cap_1_dev, size_dev,
+                result_dev, temp_dev, power_dev, col_minus_1_dev, col_plus_1_dev, DEBUG);
         //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (result_dev, temp_dev, power_dev, Cap_1_dev);
         err = cudaGetLastError();
         if (err != cudaSuccess) {
