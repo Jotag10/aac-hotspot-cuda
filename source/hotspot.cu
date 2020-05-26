@@ -126,22 +126,22 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     cudaError_t err = cudaSuccess;
 
     // alocar memoria no gpu
-    FLOAT *Ry_1_dev = NULL;
-    err = cudaMalloc((void **)&Ry_1_dev, (size_t)sizeof(FLOAT));
-    FLOAT *Rx_1_dev = NULL;
-    err = cudaMalloc((void **)&Rx_1_dev, (size_t)sizeof(FLOAT));
-    FLOAT *Rz_1_dev = NULL;
-    err = cudaMalloc((void **)&Rz_1_dev, (size_t)sizeof(FLOAT));
-    FLOAT *Cap_1_dev = NULL;
-    err = cudaMalloc((void **)&Cap_1_dev, (size_t)sizeof(FLOAT));
     FLOAT *result_dev = NULL;
     err = cudaMalloc((void **)&result_dev, (size_t)(sizeof(FLOAT)*col*row));
     FLOAT *power_dev = NULL;
     err = cudaMalloc((void **)&power_dev, (size_t)(sizeof(FLOAT)*row*col));
     FLOAT *temp_dev = NULL;
     err = cudaMalloc((void **)&temp_dev, (size_t)(sizeof(FLOAT)*row*col));
-    int *size_dev = NULL;
-    err = cudaMalloc((void **)&size_dev, (size_t)sizeof(int));
+    //FLOAT *Ry_1_dev = NULL;
+    //err = cudaMalloc((void **)&Ry_1_dev, (size_t)sizeof(FLOAT));
+    //FLOAT *Rx_1_dev = NULL;
+    //err = cudaMalloc((void **)&Rx_1_dev, (size_t)sizeof(FLOAT));
+    //FLOAT *Rz_1_dev = NULL;
+    //err = cudaMalloc((void **)&Rz_1_dev, (size_t)sizeof(FLOAT));
+    //FLOAT *Cap_1_dev = NULL;
+    //err = cudaMalloc((void **)&Cap_1_dev, (size_t)sizeof(FLOAT));
+    //int *size_dev = NULL;
+    //err = cudaMalloc((void **)&size_dev, (size_t)sizeof(int));
     FLOAT *DEBUG = NULL;
     err = cudaMalloc((void **)&DEBUG, (size_t)(sizeof(FLOAT)*row*col));
     //transferir para o gpu
