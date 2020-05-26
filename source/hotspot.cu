@@ -82,7 +82,7 @@ __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOA
             (amb_temp_dev - temp_dev[row*size+column]) * (*Rz_1_dev)));
     } else*/ if (row < size - 15  && row > 15) {
         //*size_dev = 1023;
-        DEBUG[row*size+column] = 1.0;
+        //DEBUG[row*size+column] = 1.0;
         /*
         result_dev[column] =temp_dev[column]+ 
              ( (*Cap_1_dev) * (power_dev[column] + 
@@ -234,7 +234,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
             //printf("DEBUG[%d] - %lf   temp[%d] - %lf\n",i, DEBBUG_HOST[i], i, temp[i]);
         //if (i == num_iterations-1)err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
         if (i == num_iterations-1) 
-            err = cudaMemcpyAsync(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
+            err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
         
         if (err != cudaSuccess) {
             fprintf(stderr, "Failed to copy vector result from device to host (error code %s)!\n", cudaGetErrorString(err));      
@@ -255,11 +255,11 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     cudaFree(result_dev);
     cudaFree(temp_dev);
     cudaFree(power_dev);
-    //cudaFree(Cap_1_dev);
-    //cudaFree(Ry_1_dev);
-    //cudaFree(Rx_1_dev);
-    //cudaFree(Rz_1_dev);
-    //cudaFree(size_dev);
+    cudaFree(Cap_1_dev);
+    cudaFree(Ry_1_dev);
+    cudaFree(Rx_1_dev);
+    cudaFree(Rz_1_dev);
+    cudaFree(size_dev);
 
 	#ifdef VERBOSE
 	fprintf(stdout, "iteration %d\n", i++);
