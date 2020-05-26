@@ -48,6 +48,11 @@ int num_omp_threads;
 
 
 __constant__ FLOAT amb_temp_dev;
+__constant__ FLOAT Ry_1_dev;   
+__constant__ FLOAT Rx_1_dev;   
+__constant__ FLOAT Rz_1_dev; 
+__constant__ FLOAT Cap_1_dev_t;
+__constant__ int size_dev;
 #define THREADS_PER_BLOCK 256
 
 __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, 
@@ -140,15 +145,20 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     FLOAT *DEBUG = NULL;
     err = cudaMalloc((void **)&DEBUG, (size_t)(sizeof(FLOAT)*row*col));
     //transferir para o gpu
-    err = cudaMemcpyAsync(Ry_1_dev, &Ry_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
-    err = cudaMemcpyAsync(Rx_1_dev, &Rx_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
-    err = cudaMemcpyAsync(Rz_1_dev, &Rz_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
-    err = cudaMemcpyAsync(Cap_1_dev, &Cap_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
     err = cudaMemcpyAsync(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
     err = cudaMemcpyAsync(power_dev, power, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
-    err = cudaMemcpyAsync(size_dev, &col, (size_t)sizeof(int), cudaMemcpyHostToDevice);
+    
+    //err = cudaMemcpyAsync(Ry_1_dev, &Ry_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    //err = cudaMemcpyAsync(Rx_1_dev, &Rx_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    //err = cudaMemcpyAsync(Rz_1_dev, &Rz_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    //err = cudaMemcpyAsync(Cap_1_dev, &Cap_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    //err = cudaMemcpyAsync(size_dev, &col, (size_t)sizeof(int), cudaMemcpyHostToDevice);
     //copy amb_temp to device
-    cudaMemcpyToSymbol(amb_temp_dev, &amb_temp, (size_t)sizeof(FLOAT));
+    cudaMemcpyToSymbol(Ry_1_dev, &Ry_1,  (size_t)sizeof(FLOAT));
+    cudaMemcpyToSymbol(Rx_1_dev, &Rx_1,  (size_t)sizeof(FLOAT));
+    cudaMemcpyToSymbol(Rz_1_dev, &Rz_1,  (size_t)sizeof(FLOAT));
+    cudaMemcpyToSymbol(Cap_1_dev, &Cap_1, (size_t)sizeof(FLOAT));
+    cudaMemcpyToSymbol(size_dev, &col, (size_t)sizeof(FLOAT));
 
     dim3 blockDist(THREADS_PER_BLOCK,1,1);
     dim3 gridDist((row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col, 1);
@@ -199,7 +209,6 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
             exit(EXIT_FAILURE);
         }
 
-
         kernel_ifs(result, temp, power, col, row, Cap_1, Rx_1, Ry_1, Rz_1, amb_temp);
         
         tmp = temp;
@@ -214,11 +223,11 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     cudaFree(result_dev);
     cudaFree(temp_dev);
     cudaFree(power_dev);
-    cudaFree(Cap_1_dev);
-    cudaFree(Ry_1_dev);
-    cudaFree(Rx_1_dev);
-    cudaFree(Rz_1_dev);
-    cudaFree(size_dev);
+    //cudaFree(Cap_1_dev);
+    //cudaFree(Ry_1_dev);
+    //cudaFree(Rx_1_dev);
+    //cudaFree(Rz_1_dev);
+    //cudaFree(size_dev);
 
 	#ifdef VERBOSE
 	fprintf(stdout, "iteration %d\n", i++);
