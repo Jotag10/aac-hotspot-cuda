@@ -31,11 +31,10 @@ using namespace std;
 #define OPEN
 //#define NUM_THREAD 4
 
-
-void kernel_ifs(FLOAT *result, FLOAT *temp, FLOAT *power, int size, int col, int row, FLOAT Cap_1, FLOAT Rx_1, 
-				FLOAT Ry_1, FLOAT Rz_1, FLOAT amb_temp);
-
 typedef float FLOAT;
+
+void kernel_ifs(FLOAT *result, FLOAT *temp, FLOAT *power, int col, int row, FLOAT Cap_1, FLOAT Rx_1, 
+				FLOAT Ry_1, FLOAT Rz_1, FLOAT amb_temp);
 
 /* chip parameters	*/
 const FLOAT t_chip = 0.0005;
@@ -168,7 +167,7 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     cudaFree(Rz_1_dev);
     cudaFree(size_dev);
 
-    kernel_ifs(result, temp, power, size, col, row, Cap_1, Rx_1, 
+    kernel_ifs(result, temp, power, col, row, Cap_1, Rx_1, 
 				Ry_1, Rz_1, amb_temp);
     //charma kernel_ifs
 }
@@ -355,7 +354,7 @@ int main(int argc, char **argv)
 
 
 
-void kernel_ifs(FLOAT *result, FLOAT *temp, FLOAT *power, int size, int col, int row, FLOAT Cap_1, FLOAT Rx_1, 
+void kernel_ifs(FLOAT *result, FLOAT *temp, FLOAT *power, int col, int row, FLOAT Cap_1, FLOAT Rx_1, 
 				FLOAT Ry_1, FLOAT Rz_1, FLOAT amb_temp)
 {
     FLOAT delta;
@@ -365,7 +364,7 @@ void kernel_ifs(FLOAT *result, FLOAT *temp, FLOAT *power, int size, int col, int
     int chunks_in_row = col/BLOCK_SIZE_C;
     int chunks_in_col = row/BLOCK_SIZE_R;
 	
-	for ( int chunk = 0; chunk < num_chunk; ++chunk )
+	for ( chunk = 0; chunk < num_chunk; ++chunk )
 	{
 		int r_start = BLOCK_SIZE_R*(chunk/chunks_in_col);
 		int c_start = BLOCK_SIZE_C*(chunk%chunks_in_row); 
