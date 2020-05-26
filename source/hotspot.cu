@@ -147,7 +147,7 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     cudaMemcpyToSymbol(amb_temp_dev, &amb_temp, (size_t)sizeof(FLOAT));
     
     dim3 blockDist(256,1,1);
-    dim3 gridDist((row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, (col+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, 1);
+    dim3 gridDist((row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col, 1);
     //int n_blocks = (col*row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK;
     
     //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
