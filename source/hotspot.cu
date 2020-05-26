@@ -161,7 +161,8 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         #ifdef VERBOSE
         fprintf(stdout, "iteration %d\n", i++);
         #endif
-        
+        result = r;
+
         err = cudaMemcpy(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
         
         /*
@@ -201,7 +202,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         
         FLOAT* tmp = temp;
         temp = result;
-        result = tmp;
+        r = tmp;
         /*
         FLOAT* tmp_dev = temp_dev;
         temp_dev = result_dev;
