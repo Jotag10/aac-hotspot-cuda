@@ -162,7 +162,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         fprintf(stdout, "iteration %d\n", i++);
         #endif
         
-        err = cudaMemcpyAsync(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
+        err = cudaMemcpy(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
         
         /*
         err = cudaMemcpy((temp_dev+(BLOCK_SIZE-1)*col), (temp+(BLOCK_SIZE-1)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
