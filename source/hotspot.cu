@@ -174,6 +174,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     err = cudaMemcpy(Cap_1_dev, &Cap_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
     err = cudaMemcpy(size_dev, &col, (size_t)sizeof(int), cudaMemcpyHostToDevice);
     //copy amb_temp to device
+    cudaMemcpyToSymbol(amb_temp_dev, &amb_temp, (size_t)sizeof(FLOAT));
     //cudaMemcpyToSymbol(Ry_1_dev, &Ry_1,  (size_t)sizeof(FLOAT));
     //cudaMemcpyToSymbol(Rx_1_dev, &Rx_1,  (size_t)sizeof(FLOAT));
     //cudaMemcpyToSymbol(Rz_1_dev, &Rz_1,  (size_t)sizeof(FLOAT));
