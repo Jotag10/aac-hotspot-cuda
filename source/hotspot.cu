@@ -67,13 +67,13 @@ __global__ void kernel ( FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, F
     int size = size_dev;
     //result_dev[size*size] = 1; 
     //if (column < size*size - 1  && column > size+1) {
-    if (row == BLOCK_SIZE) {
+    if (column == BLOCK_SIZE) {
         result_dev[row*size+column] =temp_dev[row*size+column]+ 
              ( (Cap_1_dev) * (power_dev[row*size+column] + 
             (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (Ry_1_dev) + 
             (temp_dev[row*size+column+1] + col_minus_1_dev[column] - 2.f*temp_dev[row*size+column]) * (Rx_1_dev) + 
             (amb_temp_dev - temp_dev[row*size+column]) * (Rz_1_dev)));
-    }else if (row == size - BLOCK_SIZE - 1) {
+    }else if (column == size - BLOCK_SIZE - 1) {
         result_dev[row*size+column] =temp_dev[row*size+column]+ 
              ( (Cap_1_dev) * (power_dev[row*size+column] + 
             (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (Ry_1_dev) + 
