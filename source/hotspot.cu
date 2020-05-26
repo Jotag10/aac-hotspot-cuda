@@ -83,95 +83,6 @@ __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev,
 
 }
 
-/* Single iteration of the transient solver in the grid model.
- * advances the solution of the discretized difference equations 
- * by one time step
- */
-void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col,
-					  FLOAT Cap_1, FLOAT Rx_1, FLOAT Ry_1, FLOAT Rz_1, 
-					  FLOAT step)
-{
-
-    int DEBUG_INT;
-    FLOAT *DEBBUG_HOST;
-    DEBBUG_HOST = (FLOAT *)calloc (row*col,sizeof(FLOAT));
-
-    // Error code to check return values for CUDA calls
-    cudaError_t err = cudaSuccess;
-
-    FLOAT *Ry_1_dev = NULL;
-    err = cudaMalloc((void **)&Ry_1_dev, (size_t)sizeof(FLOAT));
-    FLOAT *Rx_1_dev = NULL;
-    err = cudaMalloc((void **)&Rx_1_dev, (size_t)sizeof(FLOAT));
-    FLOAT *Rz_1_dev = NULL;
-    err = cudaMalloc((void **)&Rz_1_dev, (size_t)sizeof(FLOAT));
-    FLOAT *Cap_1_dev = NULL;
-    err = cudaMalloc((void **)&Cap_1_dev, (size_t)sizeof(FLOAT));
-    FLOAT *result_dev = NULL;
-    err = cudaMalloc((void **)&result_dev, (size_t)(sizeof(FLOAT)*col*row));
-    FLOAT *power_dev = NULL;
-    err = cudaMalloc((void **)&power_dev, (size_t)(sizeof(FLOAT)*row*col));
-    FLOAT *temp_dev = NULL;
-    err = cudaMalloc((void **)&temp_dev, (size_t)(sizeof(FLOAT)*row*col));
-    int *size_dev = NULL;
-    err = cudaMalloc((void **)&size_dev, (size_t)sizeof(int));
-    
-    FLOAT *DEBUG = NULL;
-    err = cudaMalloc((void **)&DEBUG, (size_t)(sizeof(FLOAT)*row*col));
-    
-    err = cudaMemcpy(Ry_1_dev, &Ry_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
-    err = cudaMemcpy(Rx_1_dev, &Rx_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
-    err = cudaMemcpy(Rz_1_dev, &Rz_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
-    err = cudaMemcpy(Cap_1_dev, &Cap_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
-    err = cudaMemcpy(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
-    err = cudaMemcpy(power_dev, power, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
-    err = cudaMemcpy(size_dev, &col, (size_t)sizeof(int), cudaMemcpyHostToDevice);
-
-    //copy amb_temp to device
-    cudaMemcpyToSymbol(amb_temp_dev, &amb_temp, (size_t)sizeof(FLOAT));
-    
-    dim3 blockDist(256,1,1);
-    dim3 gridDist((row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col, 1);
-    //int n_blocks = (col*row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK;
-    
-    //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
-    kernel<<<gridDist, blockDist>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
-        Cap_1_dev, result_dev, temp_dev, power_dev,
-        size_dev, DEBUG);
-    //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (result_dev, temp_dev, power_dev, Cap_1_dev);
-    err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        fprintf(stderr, "Failed to launch vectorAdd kernel (error code %s)!\n", cudaGetErrorString(err));                
-        exit(EXIT_FAILURE);
-    }
-    err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
-    //err = cudaMemcpy(&DEBUG_INT, size_dev, (size_t)(sizeof(FLOAT)), cudaMemcpyDeviceToHost);                                                            
-    //printf("size - %d\n", DEBUG_INT);
-
-    //err = cudaMemcpy(DEBBUG_HOST, DEBUG, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
-    //for (int i = 0; i < 1024*1024; i++)
-    //    printf("DEBUG[%d] - %lf   temp[%d] - %lf\n",i, DEBBUG_HOST[i], i, temp[i]);
-    
-    if (err != cudaSuccess)
-    {
-        fprintf(stderr, "Failed to copy vector result from device to host (error code %s)!\n", cudaGetErrorString(err));      
-        exit(EXIT_FAILURE);
-    }
-
-    cudaFree(result_dev);
-    cudaFree(temp_dev);
-    cudaFree(power_dev);
-    cudaFree(Cap_1_dev);
-    cudaFree(Ry_1_dev);
-    cudaFree(Rx_1_dev);
-    cudaFree(Rz_1_dev);
-    cudaFree(size_dev);
-
-    kernel_ifs(result, temp, power, col, row, Cap_1, Rx_1, 
-				Ry_1, Rz_1, amb_temp);
-    //charma kernel_ifs
-}
-
 /* Transient solver driver routine: simply converts the heat 
  * transfer differential equations to difference equations 
  * and solves the difference equations by iterating
@@ -202,6 +113,48 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 	fprintf(stdout, "Rx: %g\tRy: %g\tRz: %g\tCap: %g\n", Rx, Ry, Rz, Cap);
 	#endif
 
+    int DEBUG_INT;
+    FLOAT *DEBBUG_HOST;
+    DEBBUG_HOST = (FLOAT *)calloc (row*col,sizeof(FLOAT));
+
+    // Error code to check return values for CUDA calls
+    cudaError_t err = cudaSuccess;
+
+    // alocar memoria no gpu
+    FLOAT *Ry_1_dev = NULL;
+    err = cudaMalloc((void **)&Ry_1_dev, (size_t)sizeof(FLOAT));
+    FLOAT *Rx_1_dev = NULL;
+    err = cudaMalloc((void **)&Rx_1_dev, (size_t)sizeof(FLOAT));
+    FLOAT *Rz_1_dev = NULL;
+    err = cudaMalloc((void **)&Rz_1_dev, (size_t)sizeof(FLOAT));
+    FLOAT *Cap_1_dev = NULL;
+    err = cudaMalloc((void **)&Cap_1_dev, (size_t)sizeof(FLOAT));
+    FLOAT *result_dev = NULL;
+    err = cudaMalloc((void **)&result_dev, (size_t)(sizeof(FLOAT)*col*row));
+    FLOAT *power_dev = NULL;
+    err = cudaMalloc((void **)&power_dev, (size_t)(sizeof(FLOAT)*row*col));
+    FLOAT *temp_dev = NULL;
+    err = cudaMalloc((void **)&temp_dev, (size_t)(sizeof(FLOAT)*row*col));
+    int *size_dev = NULL;
+    err = cudaMalloc((void **)&size_dev, (size_t)sizeof(int));
+    
+    FLOAT *DEBUG = NULL;
+    err = cudaMalloc((void **)&DEBUG, (size_t)(sizeof(FLOAT)*row*col));
+    //transferir para o gpu
+    err = cudaMemcpy(Ry_1_dev, &Ry_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(Rx_1_dev, &Rx_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(Rz_1_dev, &Rz_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(Cap_1_dev, &Cap_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(power_dev, power, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(size_dev, &col, (size_t)sizeof(int), cudaMemcpyHostToDevice);
+    //copy amb_temp to device
+    cudaMemcpyToSymbol(amb_temp_dev, &amb_temp, (size_t)sizeof(FLOAT));
+
+    dim3 blockDist(256,1,1);
+    dim3 gridDist((row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col, 1);
+    //int n_blocks = (col*row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK;
+
     FLOAT* r = result;
     FLOAT* t = temp;
     for (int i = 0; i < num_iterations ; i++)
@@ -210,18 +163,46 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         fprintf(stdout, "iteration %d\n", i++);
         #endif
 
-        single_iteration(r, t, power, row, col, Cap_1, Rx_1, Ry_1, Rz_1, step);
+        //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
+        kernel<<<gridDist, blockDist>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
+            Cap_1_dev, result_dev, temp_dev, power_dev,
+            size_dev, DEBUG);
+        //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (result_dev, temp_dev, power_dev, Cap_1_dev);
+        err = cudaGetLastError();
+        if (err != cudaSuccess) {
+            fprintf(stderr, "Failed to launch vectorAdd kernel (error code %s)!\n", cudaGetErrorString(err));                
+            exit(EXIT_FAILURE);
+        }
+        err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
+        //err = cudaMemcpy(&DEBUG_INT, size_dev, (size_t)(sizeof(FLOAT)), cudaMemcpyDeviceToHost);                                                            
+        //printf("size - %d\n", DEBUG_INT);
+
+        //err = cudaMemcpy(DEBBUG_HOST, DEBUG, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
+        //for (int i = 0; i < 1024*1024; i++)
+        //    printf("DEBUG[%d] - %lf   temp[%d] - %lf\n",i, DEBBUG_HOST[i], i, temp[i]);
         
-        
-        
-        
-        
-        
+        if (err != cudaSuccess)
+        {
+            fprintf(stderr, "Failed to copy vector result from device to host (error code %s)!\n", cudaGetErrorString(err));      
+            exit(EXIT_FAILURE);
+        }
+
+
+        kernel_ifs(result, temp, power, col, row, Cap_1, Rx_1, Ry_1, Rz_1, amb_temp);
         
         FLOAT* tmp = t;
         t = r;
         r = tmp;
     }	
+
+    cudaFree(result_dev);
+    cudaFree(temp_dev);
+    cudaFree(power_dev);
+    cudaFree(Cap_1_dev);
+    cudaFree(Ry_1_dev);
+    cudaFree(Rx_1_dev);
+    cudaFree(Rz_1_dev);
+    cudaFree(size_dev);
 
 	#ifdef VERBOSE
 	fprintf(stdout, "iteration %d\n", i++);
