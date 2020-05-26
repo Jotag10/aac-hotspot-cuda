@@ -164,16 +164,16 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         #endif
         result = r;
 
-        err = cudaMemcpyAsync(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
+        //err = cudaMemcpyAsync(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
         
-        /*
-        err = cudaMemcpy((temp_dev+(BLOCK_SIZE-1)*col), (temp+(BLOCK_SIZE-1)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
-        err = cudaMemcpy((temp_dev+(row-BLOCK_SIZE)*col), (temp+(row-BLOCK_SIZE)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
+        
+        err = cudaMemcpyAsync((temp_dev+(BLOCK_SIZE-1)*col), (temp+(BLOCK_SIZE-1)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
+        err = cudaMemcpyAsync((temp_dev+(row-BLOCK_SIZE)*col), (temp+(row-BLOCK_SIZE)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
         
         for (int j = 0; j < row; j++) {
-            err = cudaMemcpy((temp_dev + j*row + BLOCK_SIZE-1), (temp + j*row+BLOCK_SIZE-1), (size_t)(sizeof(FLOAT)), cudaMemcpyHostToDevice);
-            err = cudaMemcpy((temp_dev + j*row + col-BLOCK_SIZE), (temp + j*row + col-BLOCK_SIZE), (size_t)(sizeof(FLOAT)), cudaMemcpyHostToDevice);
-        }*/
+            err = cudaMemcpyAsync((temp_dev + j*row + BLOCK_SIZE-1), (temp + j*row+BLOCK_SIZE-1), (size_t)(sizeof(FLOAT)), cudaMemcpyHostToDevice);
+            err = cudaMemcpyAsync((temp_dev + j*row + col-BLOCK_SIZE), (temp + j*row + col-BLOCK_SIZE), (size_t)(sizeof(FLOAT)), cudaMemcpyHostToDevice);
+        }
 
         //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
         kernel<<<gridDist, blockDist>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
@@ -192,7 +192,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         //for (int i = 0; i < 1024*1024; i++)
         //    printf("DEBUG[%d] - %lf   temp[%d] - %lf\n",i, DEBBUG_HOST[i], i, temp[i]);
         //if (i == num_iterations-1)err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
-        err = cudaMemcpyAsync(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
+        if (i == num_iterations-1) err = cudaMemcpyAsync(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
         
         if (err != cudaSuccess) {
             fprintf(stderr, "Failed to copy vector result from device to host (error code %s)!\n", cudaGetErrorString(err));      
@@ -205,10 +205,10 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         tmp = temp;
         temp = result;
         r = tmp;
-        /*
+        
         FLOAT* tmp_dev = temp_dev;
         temp_dev = result_dev;
-        result_dev = tmp_dev;*/
+        result_dev = tmp_dev;
     }	
 
     cudaFree(result_dev);
