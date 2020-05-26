@@ -147,9 +147,9 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     FLOAT *temp_dev = NULL;
     err = cudaMalloc((void **)&temp_dev, (size_t)(sizeof(FLOAT)*row*col));
     FLOAT *col_minus_1_dev = NULL;
-    err = cudaMalloc((void **)&temp_dev, (size_t)(sizeof(FLOAT)*col));
+    err = cudaMalloc((void **)&col_minus_1_dev, (size_t)(sizeof(FLOAT)*col));
     FLOAT *col_plus_1_dev = NULL;
-    err = cudaMalloc((void **)&temp_dev, (size_t)(sizeof(FLOAT)*col));
+    err = cudaMalloc((void **)&col_plus_1_dev, (size_t)(sizeof(FLOAT)*col));
     //FLOAT *Ry_1_dev = NULL;
     //err = cudaMalloc((void **)&Ry_1_dev, (size_t)sizeof(FLOAT));
     //FLOAT *Rx_1_dev = NULL;
