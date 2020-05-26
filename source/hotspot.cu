@@ -68,7 +68,7 @@ __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOA
     int size = *size_dev;
     //result_dev[size*size] = 1; 
     //if (column < size*size - 1  && column > size+1) {
-    /*if (column == BLOCK_SIZE && row != 0 && row != size-1) {
+    if (column == BLOCK_SIZE && row != 0 && row != size-1) {
         result_dev[row*size+column] =temp_dev[row*size+column]+ 
              ( (*Cap_1_dev) * (power_dev[row*size+column] + 
             (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (*Ry_1_dev) + 
@@ -80,7 +80,7 @@ __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOA
             (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (*Ry_1_dev) + 
             (col_plus_1_dev[row] + temp_dev[row*size+column-1] - 2.f*temp_dev[row*size+column]) * (*Rx_1_dev) + 
             (amb_temp_dev - temp_dev[row*size+column]) * (*Rz_1_dev)));
-    } else*/ if (row < size - 15  && row > 15) {
+    } else if (row < size - 15  && row > 15) {
         //*size_dev = 1023;
         DEBUG[row*size+column] = 1.0;
         /*
@@ -226,11 +226,11 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         //err = cudaMemcpy(&DEBUG_INT, size_dev, (size_t)(sizeof(FLOAT)), cudaMemcpyDeviceToHost);                                                            
         //printf("size - %d\n", DEBUG_INT);
         
-        err = cudaMemcpyAsync(DEBBUG_HOST, DEBUG, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
-        for (int j = 0; j < 1024*1024; j++)
-            if (DEBUG[j] == 1.0)
-                soma++;
-        printf("soma:%lf\n",soma);
+        //err = cudaMemcpyAsync(DEBBUG_HOST, DEBUG, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
+        //for (int j = 0; j < 1024*1024; j++)
+        //    if (DEBUG[j] == 1.0)
+        //        soma++;
+        //printf("soma:%lf\n",soma);
             //printf("DEBUG[%d] - %lf   temp[%d] - %lf\n",i, DEBBUG_HOST[i], i, temp[i]);
         //if (i == num_iterations-1)err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
         if (i == num_iterations-1) 
