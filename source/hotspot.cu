@@ -55,9 +55,9 @@ __constant__ FLOAT Cap_1_dev_t;
 __constant__ int size_dev;
 #define THREADS_PER_BLOCK 256
 
-__global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, 
-        FLOAT *Cap_1_dev, FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev,
-        int *size_dev, FLOAT *DEBUG) {
+__global__ void kernel (FLOAT Ry_1_dev, FLOAT Rx_1_dev, FLOAT Rz_1_dev, 
+        FLOAT Cap_1_dev, FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev,
+        int size_dev, FLOAT *DEBUG) {
 //__global__ void kernel (FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT *Cap_1_dev) {
     // FIXME assumi que #colunas=#linhas
     unsigned int column = blockIdx.x*blockDim.x + threadIdx.x;
@@ -66,7 +66,7 @@ __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev,
     if (row >= BLOCK_SIZE_R_dev && row < size-BLOCK_SIZE_R_dev
             && column > BLOCK_SIZE_C_dev && column < size-BLOCK_SIZE_C_dev) */
     
-    int size = *size_dev;
+    int size = size_dev;
     //result_dev[size*size] = 1; 
     //if (column < size*size - 1  && column > size+1) {
     if (row < size - 15  && row > 15) {
@@ -79,10 +79,10 @@ __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev,
             (temp_dev[column+1] + temp_dev[column-1] - 2.f*temp_dev[column]) * (*Rx_1_dev) + 
             (amb_temp_dev - temp_dev[column]) * (*Rz_1_dev)));*/
         result_dev[row*size+column] =temp_dev[row*size+column]+ 
-             ( (*Cap_1_dev) * (power_dev[row*size+column] + 
-            (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (*Ry_1_dev) + 
-            (temp_dev[row*size+column+1] + temp_dev[row*size+column-1] - 2.f*temp_dev[row*size+column]) * (*Rx_1_dev) + 
-            (amb_temp_dev - temp_dev[row*size+column]) * (*Rz_1_dev)));
+             ( (Cap_1_dev) * (power_dev[row*size+column] + 
+            (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (Ry_1_dev) + 
+            (temp_dev[row*size+column+1] + temp_dev[row*size+column-1] - 2.f*temp_dev[row*size+column]) * (Rx_1_dev) + 
+            (amb_temp_dev - temp_dev[row*size+column]) * (Rz_1_dev)));
             
     }
 
