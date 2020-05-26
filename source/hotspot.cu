@@ -227,8 +227,8 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         
         int soma = 0;
         err = cudaMemcpy(DEBBUG_HOST, DEBUG, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
-        for (int i = 0; i < 1024*1024; i++)
-            if (DEBUG[i] == 1)
+        for (int j = 0; j < 1024*1024; j++)
+            if (DEBUG[j] == 1)
                 soma++;
         printf("soma:%d\n",soma);
             //printf("DEBUG[%d] - %lf   temp[%d] - %lf\n",i, DEBBUG_HOST[i], i, temp[i]);
