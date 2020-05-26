@@ -226,7 +226,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         //err = cudaMemcpy(&DEBUG_INT, size_dev, (size_t)(sizeof(FLOAT)), cudaMemcpyDeviceToHost);                                                            
         //printf("size - %d\n", DEBUG_INT);
         
-        err = cudaMemcpy(DEBBUG_HOST, DEBUG, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
+        err = cudaMemcpyAsync(DEBBUG_HOST, DEBUG, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
         for (int j = 0; j < 1024*1024; j++)
             if (DEBUG[j] == 1.0)
                 soma++;
