@@ -31,6 +31,10 @@ using namespace std;
 #define OPEN
 //#define NUM_THREAD 4
 
+
+void kernel_ifs(FLOAT *result, FLOAT *temp, FLOAT *power, int size, int col, int row, FLOAT Cap_1, FLOAT Rx_1, 
+				FLOAT Ry_1, FLOAT Rz_1, FLOAT amb_temp);
+
 typedef float FLOAT;
 
 /* chip parameters	*/
@@ -78,16 +82,6 @@ __global__ void kernel (FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev,
             
     }
 
-    /*
-    for ( r = r_start; r < r_start + BLOCK_SIZE_R; ++r ) {
-        for ( c = c_start; c < c_start + BLOCK_SIZE_C; ++c ) {
-            result[r*col+c] =temp[r*col+c]+ 
-                 ( Cap_1 * (power[r*col+c] + 
-                (temp[(r+1)*col+c] + temp[(r-1)*col+c] - 2.f*temp[r*col+c]) * Ry_1 + 
-                (temp[r*col+c+1] + temp[r*col+c-1] - 2.f*temp[r*col+c]) * Rx_1 + 
-                (amb_temp - temp[r*col+c]) * Rz_1));
-        }
-    }*/
 }
 
 /* Single iteration of the transient solver in the grid model.
@@ -98,17 +92,9 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
 					  FLOAT Cap_1, FLOAT Rx_1, FLOAT Ry_1, FLOAT Rz_1, 
 					  FLOAT step)
 {
-    FLOAT delta;
-    int r, c;
-    int chunk;
-    int num_chunk = row*col / (BLOCK_SIZE_R * BLOCK_SIZE_C);
-    int chunks_in_row = col/BLOCK_SIZE_C;
-    int chunks_in_col = row/BLOCK_SIZE_R;
 
     int DEBUG_INT;
-
     FLOAT *DEBBUG_HOST;
-
     DEBBUG_HOST = (FLOAT *)calloc (row*col,sizeof(FLOAT));
 
     // Error code to check return values for CUDA calls
@@ -138,7 +124,6 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     err = cudaMemcpy(Rx_1_dev, &Rx_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
     err = cudaMemcpy(Rz_1_dev, &Rz_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
     err = cudaMemcpy(Cap_1_dev, &Cap_1, (size_t)sizeof(FLOAT), cudaMemcpyHostToDevice);
-    //err = cudaMemcpy(result_dev, result, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
     err = cudaMemcpy(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
     err = cudaMemcpy(power_dev, power, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
     err = cudaMemcpy(size_dev, &col, (size_t)sizeof(int), cudaMemcpyHostToDevice);
@@ -160,7 +145,6 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
         fprintf(stderr, "Failed to launch vectorAdd kernel (error code %s)!\n", cudaGetErrorString(err));                
         exit(EXIT_FAILURE);
     }
-    //printf("result-dev[17597] - %lf\n", result_dev[17597]);
     err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
     //err = cudaMemcpy(&DEBUG_INT, size_dev, (size_t)(sizeof(FLOAT)), cudaMemcpyDeviceToHost);                                                            
     //printf("size - %d\n", DEBUG_INT);
@@ -184,72 +168,9 @@ void single_iteration(FLOAT *result, FLOAT *temp, FLOAT *power, int row, int col
     cudaFree(Rz_1_dev);
     cudaFree(size_dev);
 
-    for ( chunk = 0; chunk < num_chunk; ++chunk )
-    {
-        int r_start = BLOCK_SIZE_R*(chunk/chunks_in_col);
-        int c_start = BLOCK_SIZE_C*(chunk%chunks_in_row); 
-        int r_end = r_start + BLOCK_SIZE_R > row ? row : r_start + BLOCK_SIZE_R;
-        int c_end = c_start + BLOCK_SIZE_C > col ? col : c_start + BLOCK_SIZE_C;
-       
-        if ( r_start == 0 || c_start == 0 || r_end == row || c_end == col )
-        {
-            for ( r = r_start; r < r_start + BLOCK_SIZE_R; ++r ) {
-                for ( c = c_start; c < c_start + BLOCK_SIZE_C; ++c ) {
-                    /* Corner 1 */
-                    if ( (r == 0) && (c == 0) ) {
-                        delta = (Cap_1) * (power[0] +
-                            (temp[1] - temp[0]) * Rx_1 +
-                            (temp[col] - temp[0]) * Ry_1 +
-                            (amb_temp - temp[0]) * Rz_1);
-                    }	/* Corner 2 */
-                    else if ((r == 0) && (c == col-1)) {
-                        delta = (Cap_1) * (power[c] +
-                            (temp[c-1] - temp[c]) * Rx_1 +
-                            (temp[c+col] - temp[c]) * Ry_1 +
-                        (   amb_temp - temp[c]) * Rz_1);
-                    }	/* Corner 3 */
-                    else if ((r == row-1) && (c == col-1)) {
-                        delta = (Cap_1) * (power[r*col+c] + 
-                            (temp[r*col+c-1] - temp[r*col+c]) * Rx_1 + 
-                            (temp[(r-1)*col+c] - temp[r*col+c]) * Ry_1 + 
-                        (   amb_temp - temp[r*col+c]) * Rz_1);					
-                    }	/* Corner 4	*/
-                    else if ((r == row-1) && (c == 0)) {
-                        delta = (Cap_1) * (power[r*col] + 
-                            (temp[r*col+1] - temp[r*col]) * Rx_1 + 
-                            (temp[(r-1)*col] - temp[r*col]) * Ry_1 + 
-                            (amb_temp - temp[r*col]) * Rz_1);
-                    }	/* Edge 1 */
-                    else if (r == 0) {
-                        delta = (Cap_1) * (power[c] + 
-                            (temp[c+1] + temp[c-1] - 2.0*temp[c]) * Rx_1 + 
-                            (temp[col+c] - temp[c]) * Ry_1 + 
-                            (amb_temp - temp[c]) * Rz_1);
-                    }	/* Edge 2 */
-                    else if (c == col-1) {
-                        delta = (Cap_1) * (power[r*col+c] + 
-                            (temp[(r+1)*col+c] + temp[(r-1)*col+c] - 2.0*temp[r*col+c]) * Ry_1 + 
-                            (temp[r*col+c-1] - temp[r*col+c]) * Rx_1 + 
-                            (amb_temp - temp[r*col+c]) * Rz_1);
-                    }	/* Edge 3 */
-                    else if (r == row-1) {
-                        delta = (Cap_1) * (power[r*col+c] + 
-                            (temp[r*col+c+1] + temp[r*col+c-1] - 2.0*temp[r*col+c]) * Rx_1 + 
-                            (temp[(r-1)*col+c] - temp[r*col+c]) * Ry_1 + 
-                            (amb_temp - temp[r*col+c]) * Rz_1);
-                    }	/* Edge 4 */
-                    else if (c == 0) {
-                        delta = (Cap_1) * (power[r*col] + 
-                            (temp[(r+1)*col] + temp[(r-1)*col] - 2.0*temp[r*col]) * Ry_1 + 
-                            (temp[r*col+1] - temp[r*col]) * Rx_1 + 
-                            (amb_temp - temp[r*col]) * Rz_1);
-                    }
-                    result[r*col+c] =temp[r*col+c]+ delta;
-                }
-            }
-        }
-    }
-
+    kernel_ifs(result, temp, power, size, col, row, Cap_1, Rx_1, 
+				Ry_1, Rz_1, amb_temp);
+    //charma kernel_ifs
 }
 
 /* Transient solver driver routine: simply converts the heat 
@@ -282,22 +203,27 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 	fprintf(stdout, "Rx: %g\tRy: %g\tRz: %g\tCap: %g\n", Rx, Ry, Rz, Cap);
 	#endif
 
-        int array_size = row*col;
-        {
-            FLOAT* r = result;
-            FLOAT* t = temp;
-            for (int i = 0; i < num_iterations ; i++)
-            {
-                #ifdef VERBOSE
-                fprintf(stdout, "iteration %d\n", i++);
-                #endif
-                //fprintf(stdout, "iteration %d\n", i);
-                single_iteration(r, t, power, row, col, Cap_1, Rx_1, Ry_1, Rz_1, step);
-                FLOAT* tmp = t;
-                t = r;
-                r = tmp;
-            }	
-        }
+    FLOAT* r = result;
+    FLOAT* t = temp;
+    for (int i = 0; i < num_iterations ; i++)
+    {
+        #ifdef VERBOSE
+        fprintf(stdout, "iteration %d\n", i++);
+        #endif
+
+        single_iteration(r, t, power, row, col, Cap_1, Rx_1, Ry_1, Rz_1, step);
+        
+        
+        
+        
+        
+        
+        
+        FLOAT* tmp = t;
+        t = r;
+        r = tmp;
+    }	
+
 	#ifdef VERBOSE
 	fprintf(stdout, "iteration %d\n", i++);
 	#endif
@@ -426,4 +352,88 @@ int main(int argc, char **argv)
 
 	return 0;
 }
+
+
+
+void kernel_ifs(FLOAT *result, FLOAT *temp, FLOAT *power, int size, int col, int row, FLOAT Cap_1, FLOAT Rx_1, 
+				FLOAT Ry_1, FLOAT Rz_1, FLOAT amb_temp)
+{
+    FLOAT delta;
+    int r,c;
+    int chunk;
+    int num_chunk = row*col / (BLOCK_SIZE_R * BLOCK_SIZE_C);
+    int chunks_in_row = col/BLOCK_SIZE_C;
+    int chunks_in_col = row/BLOCK_SIZE_R;
+	
+	for ( int chunk = 0; chunk < num_chunk; ++chunk )
+	{
+		int r_start = BLOCK_SIZE_R*(chunk/chunks_in_col);
+		int c_start = BLOCK_SIZE_C*(chunk%chunks_in_row); 
+		int r_end = r_start + BLOCK_SIZE_R > row ? row : r_start + BLOCK_SIZE_R;
+		int c_end = c_start + BLOCK_SIZE_C > col ? col : c_start + BLOCK_SIZE_C;
+	   
+	   
+		if ( r_start == 0 || c_start == 0 || r_end == row || c_end == col )
+		{	
+			for (  r = r_start; r < r_start + BLOCK_SIZE_R; ++r ) 
+			{
+                for ( c = c_start; c < c_start + BLOCK_SIZE_C; ++c ) {
+                    /* Corner 1 */
+                    if ( (r == 0) && (c == 0) ) {
+                        delta = (Cap_1) * (power[0] +
+                            (temp[1] - temp[0]) * Rx_1 +
+                            (temp[col] - temp[0]) * Ry_1 +
+                            (amb_temp - temp[0]) * Rz_1);
+                    }	/* Corner 2 */
+                    else if ((r == 0) && (c == col-1)) {
+                        delta = (Cap_1) * (power[c] +
+                            (temp[c-1] - temp[c]) * Rx_1 +
+                            (temp[c+col] - temp[c]) * Ry_1 +
+                        (   amb_temp - temp[c]) * Rz_1);
+                    }	/* Corner 3 */
+                    else if ((r == row-1) && (c == col-1)) {
+                        delta = (Cap_1) * (power[r*col+c] + 
+                            (temp[r*col+c-1] - temp[r*col+c]) * Rx_1 + 
+                            (temp[(r-1)*col+c] - temp[r*col+c]) * Ry_1 + 
+                        (   amb_temp - temp[r*col+c]) * Rz_1);					
+                    }	/* Corner 4	*/
+                    else if ((r == row-1) && (c == 0)) {
+                        delta = (Cap_1) * (power[r*col] + 
+                            (temp[r*col+1] - temp[r*col]) * Rx_1 + 
+                            (temp[(r-1)*col] - temp[r*col]) * Ry_1 + 
+                            (amb_temp - temp[r*col]) * Rz_1);
+                    }	/* Edge 1 */
+                    else if (r == 0) {
+                        delta = (Cap_1) * (power[c] + 
+                            (temp[c+1] + temp[c-1] - 2.0*temp[c]) * Rx_1 + 
+                            (temp[col+c] - temp[c]) * Ry_1 + 
+                            (amb_temp - temp[c]) * Rz_1);
+                    }	/* Edge 2 */
+                    else if (c == col-1) {
+                        delta = (Cap_1) * (power[r*col+c] + 
+                            (temp[(r+1)*col+c] + temp[(r-1)*col+c] - 2.0*temp[r*col+c]) * Ry_1 + 
+                            (temp[r*col+c-1] - temp[r*col+c]) * Rx_1 + 
+                            (amb_temp - temp[r*col+c]) * Rz_1);
+                    }	/* Edge 3 */
+                    else if (r == row-1) {
+                        delta = (Cap_1) * (power[r*col+c] + 
+                            (temp[r*col+c+1] + temp[r*col+c-1] - 2.0*temp[r*col+c]) * Rx_1 + 
+                            (temp[(r-1)*col+c] - temp[r*col+c]) * Ry_1 + 
+                            (amb_temp - temp[r*col+c]) * Rz_1);
+                    }	/* Edge 4 */
+                    else if (c == 0) {
+                        delta = (Cap_1) * (power[r*col] + 
+                            (temp[(r+1)*col] + temp[(r-1)*col] - 2.0*temp[r*col]) * Ry_1 + 
+                            (temp[r*col+1] - temp[r*col]) * Rx_1 + 
+                            (amb_temp - temp[r*col]) * Rz_1);
+                    }
+                    result[r*col+c] =temp[r*col+c]+ delta;
+                }
+
+			}
+		}
+	}
+    	
+}	
+
 /* vim: set ts=4 sw=4  sts=4 et si ai: */
