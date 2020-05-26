@@ -25,7 +25,7 @@ run_cuda: hotspot_cuda
 	@echo "WARNING: Running with 1 iterations on cuda... "
 	@echo "you may change the number of iterations and the problem size"
 	@echo "======================================================================"
-	./hotspot_cuda 1024 1024 1 1 $(DATA_DIR)/temp_1024 $(DATA_DIR)/power_1024 output_cuda.out
+	./hotspot_cuda 1024 1024 1000 1 $(DATA_DIR)/temp_1024 $(DATA_DIR)/power_1024 output_cuda.out
 
 hotspot_host: hotspot.cpp Makefile 
 	$(HOST_CC) $(HOST_CC_FLAGS) hotspot.cpp -o hotspot_host
