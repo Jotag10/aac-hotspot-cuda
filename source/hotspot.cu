@@ -130,6 +130,8 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 	cudaMallocHost( (FLOAT **) &col_plus_1 , col* sizeof(FLOAT) );
     
 
+    // Error code to check return values for CUDA calls
+    cudaError_t err = cudaSuccess;
 
     // alocar memoria no gpu
     FLOAT *result_dev = NULL;
