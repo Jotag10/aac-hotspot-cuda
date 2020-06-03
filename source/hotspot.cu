@@ -262,6 +262,8 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     cudaFree(Rx_1_dev);
     cudaFree(Rz_1_dev);
     cudaFree(size_dev);
+	free(col_minus_1);
+    free(col_plus_1);
 
 	#ifdef VERBOSE
 	fprintf(stdout, "iteration %d\n", i++);
