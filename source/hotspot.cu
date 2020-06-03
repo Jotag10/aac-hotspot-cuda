@@ -56,7 +56,7 @@ __constant__ FLOAT amb_temp_dev;
 #define THREADS_PER_BLOCK 256
 
 __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOAT* Cap_1_dev, int* size_dev,
-        FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT* col_minus_1_dev, FLOAT* col_plus_1_dev, FLOAT *DEBUG) {
+        FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT* col_minus_1_dev, FLOAT* col_plus_1_dev) {
 //__global__ void kernel (FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT *Cap_1_dev) {
     // FIXME assumi que #colunas=#linhas
     unsigned int column = blockIdx.x*blockDim.x + threadIdx.x;
@@ -129,14 +129,10 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 	fprintf(stdout, "total iterations: %d s\tstep size: %g s\n", num_iterations, step);
 	fprintf(stdout, "Rx: %g\tRy: %g\tRz: %g\tCap: %g\n", Rx, Ry, Rz, Cap);
 	#endif
-
-    int DEBUG_INT;
-    FLOAT *DEBBUG_HOST;
-    DEBBUG_HOST = (FLOAT *)calloc (row*col,sizeof(FLOAT));
 	
+    cudaMallocHost( (FLOAT **) &col_minus_1 , col* sizeof(FLOAT) );
+	cudaMallocHost( (FLOAT **) &col_plus_1 , col* sizeof(FLOAT) );
     
-    FLOAT *col_minus_1 = (FLOAT *) calloc (col, sizeof(FLOAT));
-    FLOAT *col_plus_1 = (FLOAT *) calloc (col, sizeof(FLOAT));
 
     // Error code to check return values for CUDA calls
     cudaError_t err = cudaSuccess;
@@ -162,8 +158,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     err = cudaMalloc((void **)&Cap_1_dev, (size_t)sizeof(FLOAT));
     int *size_dev = NULL;
     err = cudaMalloc((void **)&size_dev, (size_t)sizeof(int));
-    FLOAT *DEBUG = NULL;
-    err = cudaMalloc((void **)&DEBUG, (size_t)(sizeof(FLOAT)*row*col));
+	
     //transferir para o gpu
     err = cudaMemcpy(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
     err = cudaMemcpy(power_dev, power, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
@@ -262,8 +257,8 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     cudaFree(Rx_1_dev);
     cudaFree(Rz_1_dev);
     cudaFree(size_dev);
-	free(col_minus_1);
-    free(col_plus_1);
+	cudaFreeHost(col_minus_1);
+    cudaFreeHost(col_plus_1);
 
 	#ifdef VERBOSE
 	fprintf(stdout, "iteration %d\n", i++);
