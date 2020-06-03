@@ -349,9 +349,10 @@ int main(int argc, char **argv)
 		usage(argc, argv);
 
 	/* allocate memory for the temperature and power arrays	*/
-	temp = (FLOAT *) calloc (grid_rows * grid_cols, sizeof(FLOAT));
-	power = (FLOAT *) calloc (grid_rows * grid_cols, sizeof(FLOAT));
-	result = (FLOAT *) calloc (grid_rows * grid_cols, sizeof(FLOAT));
+	cudaMallocHost((FLOAT **) &temp , grid_rows *grid_cols*sizeof(FLOAT));
+	cudaMallocHost((FLOAT **) &power , grid_rows *grid_cols*sizeof(FLOAT));
+	cudaMallocHost((FLOAT **) &result , grid_rows *grid_cols*sizeof(FLOAT));
+
 	if(!temp || !power)
 		fatal("unable to allocate memory");
 
@@ -386,8 +387,8 @@ int main(int argc, char **argv)
 	fprintf(stdout, "%d\t%g\n", i, temp[i]);
 #endif
 	/* cleanup	*/
-	free(temp);
-	free(power);
+	cudaFreeHost(temp);
+	cudaFreeHost(power);
 
 	return 0;
 }
