@@ -125,6 +125,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     FLOAT Ry_1=1.f/Ry;
     FLOAT Rz_1=1.f/Rz;
     FLOAT Cap_1 = step/Cap;
+	FLOAT *col_minus_1, *col_plus_1;
 	#ifdef VERBOSE
 	fprintf(stdout, "total iterations: %d s\tstep size: %g s\n", num_iterations, step);
 	fprintf(stdout, "Rx: %g\tRy: %g\tRz: %g\tCap: %g\n", Rx, Ry, Rz, Cap);
@@ -212,7 +213,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 
         //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
         kernel<<<gridDist, blockDist>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, Cap_1_dev, size_dev,
-                result_dev, temp_dev, power_dev, col_minus_1_dev, col_plus_1_dev, DEBUG);
+                result_dev, temp_dev, power_dev, col_minus_1_dev, col_plus_1_dev);
         //cudaDeviceSynchronize();
         //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (result_dev, temp_dev, power_dev, Cap_1_dev);
         err = cudaGetLastError();
