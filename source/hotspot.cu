@@ -152,8 +152,8 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 	fprintf(stdout, "Rx: %g\tRy: %g\tRz: %g\tCap: %g\n", Rx, Ry, Rz, Cap);
 	#endif
 	
-    cudaMallocHost( (FLOAT **) &col_minus_1 , col* sizeof(FLOAT) );
-	cudaMallocHost( (FLOAT **) &col_plus_1 , col* sizeof(FLOAT) );
+	col_minus_1=(FLOAT *) calloc (col, sizeof(FLOAT));
+    col_plus_1=(FLOAT *) calloc (col, sizeof(FLOAT));
     
 
     // Error code to check return values for CUDA calls
