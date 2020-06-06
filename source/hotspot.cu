@@ -196,7 +196,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     
 
     dim3 blockDist(THREADS_PER_BLOCK,1,1);
-    dim3 gridDist((row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col-2*BLOCK_SIZE, 1);
+    dim3 gridDist((row-(2*BLOCK_SIZE)+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col-2*BLOCK_SIZE, 1);
     //int n_blocks = (col*row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK;
 
     FLOAT* r = result;
@@ -215,10 +215,6 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         err = cudaMemcpyAsync((temp_dev+(BLOCK_SIZE-1)*col), (temp+(BLOCK_SIZE-1)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
         err = cudaMemcpyAsync((temp_dev+(row-BLOCK_SIZE)*col), (temp+(row-BLOCK_SIZE)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
         
-        //for (int j = 0; j < row; j++) {
-        //    err = cudaMemcpyAsync((temp_dev + j*row + BLOCK_SIZE-1), (temp + j*row+BLOCK_SIZE-1), (size_t)(sizeof(FLOAT)), cudaMemcpyHostToDevice);
-        //    err = cudaMemcpyAsync((temp_dev + j*row + col-BLOCK_SIZE), (temp + j*row + col-BLOCK_SIZE), (size_t)(sizeof(FLOAT)), cudaMemcpyHostToDevice);
-        //}
 
         for (int j = 0; j < row; j++) {
             col_minus_1[j] = *(temp + j*row+BLOCK_SIZE-1);
@@ -239,16 +235,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
             fprintf(stderr, "Failed to launch vectorAdd kernel (error code %s)!\n", cudaGetErrorString(err));                
             exit(EXIT_FAILURE);
         }
-        //err = cudaMemcpy(&DEBUG_INT, size_dev, (size_t)(sizeof(FLOAT)), cudaMemcpyDeviceToHost);                                                            
-        //printf("size - %d\n", DEBUG_INT);
-        
-        //err = cudaMemcpyAsync(DEBBUG_HOST, DEBUG, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);                                                            
-        //for (int j = 0; j < 1024*1024; j++)
-        //    if (DEBUG[j] == 1.0)
-        //        soma++;
-        //printf("soma:%lf\n",soma);
-            //printf("DEBUG[%d] - %lf   temp[%d] - %lf\n",i, DEBBUG_HOST[i], i, temp[i]);
-        //if (i == num_iterations-1)err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
+
         if (i == num_iterations-1) 
             err = cudaMemcpy(result, result_dev, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyDeviceToHost);
         
