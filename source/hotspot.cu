@@ -154,6 +154,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 	
 	col_minus_1=(FLOAT *) calloc (col, sizeof(FLOAT));
     col_plus_1=(FLOAT *) calloc (col, sizeof(FLOAT));
+
     
 
     // Error code to check return values for CUDA calls
@@ -192,11 +193,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     err = cudaMemcpy(size_dev, &col, (size_t)sizeof(int), cudaMemcpyHostToDevice);
     //copy amb_temp to device
     cudaMemcpyToSymbol(amb_temp_dev, &amb_temp, (size_t)sizeof(FLOAT));
-    //cudaMemcpyToSymbol(Ry_1_dev, &Ry_1,  (size_t)sizeof(FLOAT));
-    //cudaMemcpyToSymbol(Rx_1_dev, &Rx_1,  (size_t)sizeof(FLOAT));
-    //cudaMemcpyToSymbol(Rz_1_dev, &Rz_1,  (size_t)sizeof(FLOAT));
-    //cudaMemcpyToSymbol(Cap_1_dev, &Cap_1, (size_t)sizeof(FLOAT));
-    //cudaMemcpyToSymbol(size_dev, &col, (size_t)sizeof(FLOAT));
+    
 
     dim3 blockDist(THREADS_PER_BLOCK,1,1);
     dim3 gridDist((row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col, 1);
@@ -368,9 +365,9 @@ int main(int argc, char **argv)
 		usage(argc, argv);
 
 	/* allocate memory for the temperature and power arrays	*/
-	cudaMallocHost((FLOAT **) &temp , grid_rows *grid_cols*sizeof(FLOAT));
-	cudaMallocHost((FLOAT **) &power , grid_rows *grid_cols*sizeof(FLOAT));
-	cudaMallocHost((FLOAT **) &result , grid_rows *grid_cols*sizeof(FLOAT));
+	temp=(FLOAT *) calloc (grid_rows *grid_cols, sizeof(FLOAT));
+    power=(FLOAT *) calloc (grid_rows *grid_cols, sizeof(FLOAT));
+	result=(FLOAT *) calloc (grid_rows *grid_cols, sizeof(FLOAT));
 
 	if(!temp || !power)
 		fatal("unable to allocate memory");
