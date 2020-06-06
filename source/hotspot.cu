@@ -58,7 +58,7 @@ __constant__ FLOAT amb_temp_dev;
 __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOAT* Cap_1_dev, int* size_dev,
         FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT* col_minus_1_dev, FLOAT* col_plus_1_dev) {
 
-    unsigned int column = blockIdx.x*blockDim.x + threadIdx.x;
+    unsigned int column = blockIdx.x*blockDim.x + threadIdx.x+BLOCK_SIZE;
     unsigned int row = blockIdx.y+BLOCK_SIZE;
     
     
