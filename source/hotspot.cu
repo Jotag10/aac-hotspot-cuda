@@ -109,7 +109,7 @@ __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOA
 			(col_plus_1_dev[row] + temp_dev[row*size+column-1] - 2.f*temp_dev[row*size+column]) * (*Rx_1_dev) + 
 			(amb_temp_dev - temp_dev[row*size+column]) * (*Rz_1_dev)));
 	}
-	else if (row < size - 15  && row > 15) {
+	else //if (row < size - 15  && row > 15) {
 	result_dev[row*size+column] =temp_dev[row*size+column]+ 
 		 ( (*Cap_1_dev) * (power_dev[row*size+column] + 
 		(temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (*Ry_1_dev) + 
