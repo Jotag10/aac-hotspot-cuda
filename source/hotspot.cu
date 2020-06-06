@@ -59,7 +59,7 @@ __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOA
         FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT* col_minus_1_dev, FLOAT* col_plus_1_dev) {
 
     unsigned int column = blockIdx.x*blockDim.x + threadIdx.x;
-    unsigned int row = blockIdx.y;
+    unsigned int row = blockIdx.y+16;
     
     
     int size = *size_dev;
@@ -196,7 +196,7 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     
 
     dim3 blockDist(THREADS_PER_BLOCK,1,1);
-    dim3 gridDist((row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col, 1);
+    dim3 gridDist((row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col-2*BLOCK_SIZE, 1);
     //int n_blocks = (col*row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK;
 
     FLOAT* r = result;
