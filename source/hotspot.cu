@@ -53,7 +53,7 @@ __constant__ FLOAT amb_temp_dev;
 //__constant__ FLOAT Rz_1_dev; 
 //__constant__ FLOAT Cap_1_dev;
 //__constant__ int size_dev;
-#define THREADS_PER_BLOCK 1024
+#define THREADS_PER_BLOCK 512
 
 __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOAT* Cap_1_dev, int* size_dev,
         FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT* col_minus_1_dev, FLOAT* col_plus_1_dev) {
@@ -211,19 +211,20 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 
         //err = cudaMemcpyAsync(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
         
-        
-        err = cudaMemcpyAsync((temp_dev+(BLOCK_SIZE-1)*col), (temp+(BLOCK_SIZE-1)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
-        err = cudaMemcpyAsync((temp_dev+(row-BLOCK_SIZE)*col), (temp+(row-BLOCK_SIZE)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
-        
+        if (i!=0)
+		{
+			err = cudaMemcpyAsync((temp_dev+(BLOCK_SIZE-1)*col), (temp+(BLOCK_SIZE-1)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
+			err = cudaMemcpyAsync((temp_dev+(row-BLOCK_SIZE)*col), (temp+(row-BLOCK_SIZE)*col), (size_t)(sizeof(FLOAT)*col), cudaMemcpyHostToDevice);
+			
 
-        for (int j = 0; j < row; j++) {
-            col_minus_1[j] = *(temp + j*row+BLOCK_SIZE-1);
-            col_plus_1[j] = *(temp + j*row + col-BLOCK_SIZE);
-        }
+			for (int j = 0; j < row; j++) {
+				col_minus_1[j] = *(temp + j*row+BLOCK_SIZE-1);
+				col_plus_1[j] = *(temp + j*row + col-BLOCK_SIZE);
+			}
 
-        err = cudaMemcpyAsync(col_minus_1_dev, col_minus_1, (size_t)(sizeof(FLOAT)*row), cudaMemcpyHostToDevice);
-        err = cudaMemcpyAsync(col_plus_1_dev, col_plus_1, (size_t)(sizeof(FLOAT)*row), cudaMemcpyHostToDevice);
-
+			err = cudaMemcpyAsync(col_minus_1_dev, col_minus_1, (size_t)(sizeof(FLOAT)*row), cudaMemcpyHostToDevice);
+			err = cudaMemcpyAsync(col_plus_1_dev, col_plus_1, (size_t)(sizeof(FLOAT)*row), cudaMemcpyHostToDevice);
+		}
 
         //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
         kernel<<<gridDist, blockDist>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, Cap_1_dev, size_dev,
