@@ -53,7 +53,7 @@ __constant__ FLOAT amb_temp_dev;
 //__constant__ FLOAT Rz_1_dev; 
 //__constant__ FLOAT Cap_1_dev;
 //__constant__ int size_dev;
-#define THREADS_PER_BLOCK 1024
+#define THREADS_PER_BLOCK 256
 
 __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOAT* Cap_1_dev, int* size_dev,
         FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT* col_minus_1_dev, FLOAT* col_plus_1_dev) {
@@ -195,9 +195,10 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     cudaMemcpyToSymbol(amb_temp_dev, &amb_temp, (size_t)sizeof(FLOAT));
     
 
-    dim3 blockDist(THREADS_PER_BLOCK,1,1);
-    dim3 gridDist((row-(2*BLOCK_SIZE)+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col-2*BLOCK_SIZE, 1);
-    //int n_blocks = (col*row+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK;
+    //dim3 blockDist(THREADS_PER_BLOCK,1,1);
+    //dim3 gridDist((row-(2*BLOCK_SIZE)+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col-2*BLOCK_SIZE, 1);
+	dim3 blockDist(16,16,1);
+    dim3 gridDist((row-(2*BLOCK_SIZE)+16-1)/16, (col-(2*BLOCK_SIZE)+16-1)/16, 1);
 
     FLOAT* r = result;
     FLOAT* t = temp;
