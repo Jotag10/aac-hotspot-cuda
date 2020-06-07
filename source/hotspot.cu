@@ -152,8 +152,10 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 	fprintf(stdout, "Rx: %g\tRy: %g\tRz: %g\tCap: %g\n", Rx, Ry, Rz, Cap);
 	#endif
 	
-	col_minus_1=(FLOAT *) calloc (col, sizeof(FLOAT));
-    col_plus_1=(FLOAT *) calloc (col, sizeof(FLOAT));
+	cudaMallocHost( (FLOAT **) &col_minus_1 , col* sizeof(FLOAT) );
+	cudaMallocHost( (FLOAT **) &col_plus_1 , col* sizeof(FLOAT) );
+	//col_minus_1=(FLOAT *) calloc (col, sizeof(FLOAT));
+    //col_plus_1=(FLOAT *) calloc (col, sizeof(FLOAT));
 
     
 
@@ -353,9 +355,12 @@ int main(int argc, char **argv)
 		usage(argc, argv);
 
 	/* allocate memory for the temperature and power arrays	*/
-	temp=(FLOAT *) calloc (grid_rows *grid_cols, sizeof(FLOAT));
-    power=(FLOAT *) calloc (grid_rows *grid_cols, sizeof(FLOAT));
-	result=(FLOAT *) calloc (grid_rows *grid_cols, sizeof(FLOAT));
+	cudaMallocHost( (FLOAT **) &temp , grid_rows *grid_cols* sizeof(FLOAT) );
+	cudaMallocHost( (FLOAT **) &power , grid_rows *grid_cols* sizeof(FLOAT) );
+	cudaMallocHost( (FLOAT **) &result , grid_rows *grid_cols* sizeof(FLOAT) );
+	//temp=(FLOAT *) calloc (grid_rows *grid_cols, sizeof(FLOAT));
+    //power=(FLOAT *) calloc (grid_rows *grid_cols, sizeof(FLOAT));
+	//result=(FLOAT *) calloc (grid_rows *grid_cols, sizeof(FLOAT));
 
 	if(!temp || !power)
 		fatal("unable to allocate memory");
