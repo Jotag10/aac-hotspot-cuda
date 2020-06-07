@@ -53,7 +53,7 @@ __constant__ FLOAT amb_temp_dev;
 //__constant__ FLOAT Rz_1_dev; 
 //__constant__ FLOAT Cap_1_dev;
 //__constant__ int size_dev;
-#define THREADS_PER_BLOCK 128
+#define THREADS_PER_BLOCK 512
 
 __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOAT* Cap_1_dev, int* size_dev,
         FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT* col_minus_1_dev, FLOAT* col_plus_1_dev) {
