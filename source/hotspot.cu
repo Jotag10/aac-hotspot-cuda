@@ -195,10 +195,9 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
     cudaMemcpyToSymbol(amb_temp_dev, &amb_temp, (size_t)sizeof(FLOAT));
     
 
-    //dim3 blockDist(THREADS_PER_BLOCK,1,1);
-    //dim3 gridDist((row-(2*BLOCK_SIZE)+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col-2*BLOCK_SIZE, 1);
-	dim3 blockDist(32,16,1);
-    dim3 gridDist((row-(2*BLOCK_SIZE)+32-1)/32, (col-(2*BLOCK_SIZE)+16-1)/16, 1);
+    dim3 blockDist(THREADS_PER_BLOCK,1,1);
+    dim3 gridDist((row-(2*BLOCK_SIZE)+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col-2*BLOCK_SIZE, 1);
+
 
     FLOAT* r = result;
     FLOAT* t = temp;
