@@ -53,7 +53,7 @@ __constant__ FLOAT amb_temp_dev;
 //__constant__ FLOAT Rz_1_dev; 
 //__constant__ FLOAT Cap_1_dev;
 //__constant__ int size_dev;
-#define THREADS_PER_BLOCK 256
+#define THREADS_PER_BLOCK 512
 
 __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOAT* Cap_1_dev, int* size_dev,
         FLOAT *result_dev, FLOAT *temp_dev, FLOAT *power_dev, FLOAT* col_minus_1_dev, FLOAT* col_plus_1_dev) {
@@ -197,8 +197,8 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 
     //dim3 blockDist(THREADS_PER_BLOCK,1,1);
     //dim3 gridDist((row-(2*BLOCK_SIZE)+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK, col-2*BLOCK_SIZE, 1);
-	dim3 blockDist(16,16,1);
-    dim3 gridDist((row-(2*BLOCK_SIZE)+16-1)/16, (col-(2*BLOCK_SIZE)+16-1)/16, 1);
+	dim3 blockDist(32,16,1);
+    dim3 gridDist((row-(2*BLOCK_SIZE)+32-1)/32, (col-(2*BLOCK_SIZE)+16-1)/16, 1);
 
     FLOAT* r = result;
     FLOAT* t = temp;
