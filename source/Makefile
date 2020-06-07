@@ -5,7 +5,7 @@ HOST_CC_FLAGS = -O3
 CUDA_CC = nvcc
 CUDA_CC_FLAGS = -g -O3 -lm
 
-DATA_DIR = $(HOME)/apps/hotspot/data
+DATA_DIR = ../data
 
 compile_all: hotspot_cuda hotspot_host
 
