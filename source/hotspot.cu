@@ -48,11 +48,7 @@ int num_omp_threads;
 
 
 __constant__ FLOAT amb_temp_dev;
-//__constant__ FLOAT Ry_1_dev;   
-//__constant__ FLOAT Rx_1_dev;   
-//__constant__ FLOAT Rz_1_dev; 
-//__constant__ FLOAT Cap_1_dev;
-//__constant__ int size_dev;
+
 #define THREADS_PER_BLOCK 512
 
 __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOAT* Cap_1_dev, int* size_dev,
@@ -64,34 +60,6 @@ __global__ void kernel ( FLOAT *Ry_1_dev, FLOAT *Rx_1_dev, FLOAT *Rz_1_dev, FLOA
     
     int size = *size_dev;
 	
-	/*
-	if (row != 0 && row != size-1)
-	{
-		if (column == BLOCK_SIZE)
-		{
-			result_dev[row*size+column] =temp_dev[row*size+column]+ 
-				( (*Cap_1_dev) * (power_dev[row*size+column] + 
-				(temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (*Ry_1_dev) + 
-				(temp_dev[row*size+column+1] + col_minus_1_dev[row] - 2.f*temp_dev[row*size+column]) * (*Rx_1_dev) + 
-				(amb_temp_dev - temp_dev[row*size+column]) * (*Rz_1_dev)));
-		}
-		else if (column == size - BLOCK_SIZE - 1)
-		{
-			result_dev[row*size+column] =temp_dev[row*size+column]+ 
-				( (*Cap_1_dev) * (power_dev[row*size+column] + 
-				(temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (*Ry_1_dev) + 
-				(col_plus_1_dev[row] + temp_dev[row*size+column-1] - 2.f*temp_dev[row*size+column]) * (*Rx_1_dev) + 
-				(amb_temp_dev - temp_dev[row*size+column]) * (*Rz_1_dev)));
-		}
-		else if (row < size - 15  && row > 15) {
-        result_dev[row*size+column] =temp_dev[row*size+column]+ 
-             ( (*Cap_1_dev) * (power_dev[row*size+column] + 
-            (temp_dev[(row+1)*size+column] + temp_dev[(row-1)*size+column] - 2.f*temp_dev[row*size+column]) * (*Ry_1_dev) + 
-            (temp_dev[row*size+column+1] + temp_dev[row*size+column-1] - 2.f*temp_dev[row*size+column]) * (*Rx_1_dev) + 
-            (amb_temp_dev - temp_dev[row*size+column]) * (*Rz_1_dev)));
-        }
-	}
-	*/
 	
 	if (column == BLOCK_SIZE)
 	{
@@ -152,10 +120,10 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 	fprintf(stdout, "Rx: %g\tRy: %g\tRz: %g\tCap: %g\n", Rx, Ry, Rz, Cap);
 	#endif
 	
-	cudaMallocHost( (FLOAT **) &col_minus_1 , col* sizeof(FLOAT) );
-	cudaMallocHost( (FLOAT **) &col_plus_1 , col* sizeof(FLOAT) );
-	//col_minus_1=(FLOAT *) calloc (col, sizeof(FLOAT));
-    //col_plus_1=(FLOAT *) calloc (col, sizeof(FLOAT));
+	//cudaMallocHost( (FLOAT **) &col_minus_1 , col* sizeof(FLOAT) );
+	//cudaMallocHost( (FLOAT **) &col_plus_1 , col* sizeof(FLOAT) );
+	col_minus_1=(FLOAT *) calloc (col, sizeof(FLOAT));
+    col_plus_1=(FLOAT *) calloc (col, sizeof(FLOAT));
 
     
 
@@ -211,7 +179,6 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
         #endif
         result = r;
 
-        //err = cudaMemcpyAsync(temp_dev, temp, (size_t)(sizeof(FLOAT)*col*row), cudaMemcpyHostToDevice);
         
         if (i!=0)
 		{
@@ -228,11 +195,10 @@ void compute_tran_temp(FLOAT *result, int num_iterations, FLOAT *temp, FLOAT *po
 			err = cudaMemcpyAsync(col_plus_1_dev, col_plus_1, (size_t)(sizeof(FLOAT)*row), cudaMemcpyHostToDevice);
 		}
 
-        //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, 
+ 
         kernel<<<gridDist, blockDist>>> (Ry_1_dev, Rx_1_dev, Rz_1_dev, Cap_1_dev, size_dev,
                 result_dev, temp_dev, power_dev, col_minus_1_dev, col_plus_1_dev);
-        //cudaDeviceSynchronize();
-        //kernel<<<n_blocks, THREADS_PER_BLOCK>>> (result_dev, temp_dev, power_dev, Cap_1_dev);
+
         err = cudaGetLastError();
         if (err != cudaSuccess) {
             fprintf(stderr, "Failed to launch vectorAdd kernel (error code %s)!\n", cudaGetErrorString(err));                
@@ -355,12 +321,12 @@ int main(int argc, char **argv)
 		usage(argc, argv);
 
 	/* allocate memory for the temperature and power arrays	*/
-	cudaMallocHost( (FLOAT **) &temp , grid_rows *grid_cols* sizeof(FLOAT) );
-	cudaMallocHost( (FLOAT **) &power , grid_rows *grid_cols* sizeof(FLOAT) );
-	cudaMallocHost( (FLOAT **) &result , grid_rows *grid_cols* sizeof(FLOAT) );
-	//temp=(FLOAT *) calloc (grid_rows *grid_cols, sizeof(FLOAT));
-    //power=(FLOAT *) calloc (grid_rows *grid_cols, sizeof(FLOAT));
-	//result=(FLOAT *) calloc (grid_rows *grid_cols, sizeof(FLOAT));
+	//cudaMallocHost( (FLOAT **) &temp , grid_rows *grid_cols* sizeof(FLOAT) );
+	//cudaMallocHost( (FLOAT **) &power , grid_rows *grid_cols* sizeof(FLOAT) );
+	//cudaMallocHost( (FLOAT **) &result , grid_rows *grid_cols* sizeof(FLOAT) );
+	temp=(FLOAT *) calloc (grid_rows *grid_cols, sizeof(FLOAT));
+    power=(FLOAT *) calloc (grid_rows *grid_cols, sizeof(FLOAT));
+	result=(FLOAT *) calloc (grid_rows *grid_cols, sizeof(FLOAT));
 
 	if(!temp || !power)
 		fatal("unable to allocate memory");
